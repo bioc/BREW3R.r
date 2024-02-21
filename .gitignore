@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+BREW3R.r.Rproj
+
+inst/doc
+
+BREW3R.r_*.tar.gz

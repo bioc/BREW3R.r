@@ -1,0 +1,175 @@
+---
+title: "BREW3R.r"
+author: "Lucille Lopez-Delisle"
+date: "2024-02-21"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{BREW3R.r}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+The **BREW3R.r** package has been written to be part of the BREW3R workflow. Today, the package contains a single function which enable to extend three prime of gene annotations using another gene annotation as template. This is very helpful when you are using a technique that only sequence three-prime end of genes like 10X scRNA-seq or BRB-seq.
+
+# Installation
+
+To install from Bioconductor use:
+
+```{r installation bioconductor, eval=FALSE}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("BREW3R.r")
+```
+
+To install from github use:
+
+```{r installation github, eval=FALSE}
+if (!require("devtools", quietly = TRUE))
+    install.packages("devtools")
+
+devtools::install_github("lldelisle/BREW3R.r")
+```
+
+# Example
+
+## Get gtfs
+
+In this example, I will extend the transcripts from gencode using RefSeq on mm10. In order to decrease the size of the input files, the input files of this vignette have been subsetted to the chromosome 19. Original gtf for gencode is available [here](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M25/gencode.vM25.annotation.gtf.gz) and gtf for RefSeq is available [here](https://hgdownload.soe.ucsc.edu/goldenPath/mm10/bigZips/genes/mm10.ncbiRefSeq.gtf.gz).
+
+```{r set file variables}
+input_gtf_file_to_extend <- system.file("extdata/chr19.gencode.vM25.annotation.gtf.gz", package = "BREW3R.r")
+input_gtf_file_template <- system.file("extdata/chr19.mm10.ncbiRefSeq.gtf.gz", package = "BREW3R.r")
+```
+
+## Convert gtf files to GRanges
+
+We will use the rtracklayer package to import gtf:
+
+```{r get GRanges}
+input_gr_to_extend <- rtracklayer::import(input_gtf_file_to_extend)
+input_gr_template <- rtracklayer::import(input_gtf_file_template)
+```
+
+## Save annotations
+
+The package only use exon information. It may be interesting to save the other annotations like 'CDS', 'start_codon', 'end_codon'.
+
+You should not save the 'gene' and 'transcript' annotations as they will be out of date. Same for three prime UTR.
+
+```{r save CDS}
+input_gr_CDS <- subset(input_gr_to_extend, type == "CDS")
+```
+
+## Extend the GRanges
+
+Now we can run the main function of the package:
+
+```{r extend}
+library(BREW3R.r)
+new_gr_exons <- extend_granges(input_gr_to_extend = input_gr_to_extend,
+                               input_gr_to_overlap = input_gr_template)
+```
+
+By default, `verbose` is set to TRUE so you get a lot of information. Among them, you can read that you extended about half of last exons, then you could add 29 exons to 26 transcripts.
+
+## Explore your data
+
+Here is an example for the Cntf gene that have been extended:
+
+```{r plot Cntf, echo=FALSE}
+my_gene_name <- "Cntf"
+gene_before <- subset(input_gr_to_extend, type == "exon" & gene_name == my_gene_name)
+gene_to_overlap <- subset(input_gr_template, type == "exon" & gene_name == my_gene_name)
+gene_after <- subset(new_gr_exons, type == "exon" & gene_name == my_gene_name)
+if (as.character(GenomicRanges::strand(gene_after[1])) == "+") {
+    code <- 2
+} else {
+    code <- 1
+}
+
+plot(1, type="n", xlab="", ylab="", axes = FALSE,
+     xlim = c(min(GenomicRanges::start(gene_after)) - 1,
+              max(GenomicRanges::end(gene_after))),
+     ylim = c(0, 4))
+par(las = 1)
+axis(2, at=1:3, labels=c("new gtf", "template", "original"))
+arrows(x0 = GenomicRanges::start(gene_before) - 1,
+       x1 = GenomicRanges::end(gene_before),
+       y0 = 3, col = "blue",
+       code = code)
+arrows(x0 = GenomicRanges::start(gene_to_overlap) - 1,
+       x1 = GenomicRanges::end(gene_to_overlap),
+       y0 = 2, col = "red",
+       code = code)
+arrows(x0 = GenomicRanges::start(gene_after) - 1,
+       x1 = GenomicRanges::end(gene_after),
+       y0 = 1, col = "purple",
+       code = code)
+
+
+```
+
+Here is an example for the Btrc gene that have a new exon on the 3' end:
+
+```{r plot Btrc, echo=FALSE}
+my_gene_name <- "Btrc"
+gene_before <- subset(input_gr_to_extend, type == "exon" & gene_name == my_gene_name)
+gene_to_overlap <- subset(input_gr_template, type == "exon" & gene_name == my_gene_name)
+gene_after <- subset(new_gr_exons, type == "exon" & gene_name == my_gene_name)
+if (as.character(GenomicRanges::strand(gene_after[1])) == "+") {
+    code <- 2
+} else {
+    code <- 1
+}
+
+plot(1, type="n", xlab="", ylab="", axes = FALSE,
+     xlim = c(min(GenomicRanges::start(gene_after)) - 1,
+              max(GenomicRanges::end(gene_after))),
+     ylim = c(0, 4))
+par(las = 1)
+axis(2, at=1:3, labels=c("new gtf", "template", "original"))
+arrows(x0 = GenomicRanges::start(gene_before) - 1,
+       x1 = GenomicRanges::end(gene_before),
+       y0 = 3, col = "blue",
+       code = code)
+arrows(x0 = GenomicRanges::start(gene_to_overlap) - 1,
+       x1 = GenomicRanges::end(gene_to_overlap),
+       y0 = 2, col = "red",
+       code = code)
+arrows(x0 = GenomicRanges::start(gene_after) - 1,
+       x1 = GenomicRanges::end(gene_after),
+       y0 = 1, col = "purple",
+       code = code)
+
+
+```
+
+## Recompose the GRanges
+
+We can put back annotations that have been stored:
+
+```{r recompose}
+new_gr <- c(new_gr_exons, input_gr_CDS)
+```
+
+## Write new GRanges to gtf
+
+```{r write, eval=FALSE}
+rtracklayer::export.gff(sort(new_gr), "my_new.gtf")
+```
+
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```
