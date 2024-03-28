@@ -57,13 +57,18 @@ and gtf for RefSeq is available
 [here](https://hgdownload.soe.ucsc.edu/goldenPath/mm10/bigZips/genes/mm10.ncbiRefSeq.gtf.gz).
 
 ```{r set file variables}
-input_gtf_file_to_extend <- 
+input_gtf_file_to_extend <-
   system.file(
     "extdata/chr19.gencode.vM25.annotation.gtf.gz",
-    package = "BREW3R.r"
+    package = "BREW3R.r",
+    mustWork = TRUE
   )
-input_gtf_file_template <- 
-  system.file("extdata/chr19.mm10.ncbiRefSeq.gtf.gz", package = "BREW3R.r")
+input_gtf_file_template <-
+  system.file(
+    "extdata/chr19.mm10.ncbiRefSeq.gtf.gz",
+    package = "BREW3R.r",
+    mustWork = TRUE
+  )
 ```
 
 ## Convert gtf files to GRanges
