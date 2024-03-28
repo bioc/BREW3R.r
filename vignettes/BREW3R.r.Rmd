@@ -136,11 +136,7 @@ gene_after <- subset(
   new_gr_exons,
   type == "exon" & gene_name == my_gene_name
 )
-if (as.character(strand(gene_after[1])) == "+") {
-  code <- 2
-} else {
-  code <- 1
-}
+code <- (runValue(strand(gene_after[1])) == "+") + 1
 
 plot(1,
   type = "n", xlab = "", ylab = "", axes = FALSE,
@@ -185,11 +181,8 @@ gene_to_overlap <- subset(
   type == "exon" & gene_name == my_gene_name
 )
 gene_after <- subset(new_gr_exons, type == "exon" & gene_name == my_gene_name)
-if (as.character(strand(gene_after[1])) == "+") {
-  code <- 2
-} else {
-  code <- 1
-}
+
+code <- (runValue(strand(gene_after[1])) == "+") + 1
 
 plot(1,
   type = "n", xlab = "", ylab = "", axes = FALSE,
