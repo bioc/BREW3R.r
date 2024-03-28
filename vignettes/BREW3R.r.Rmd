@@ -114,7 +114,7 @@ new_gr_exons <- extend_granges(
 )
 ```
 
-By default, `verbose` is set to TRUE so you get a lot of information.
+By default, `verbose` is set to 1 so you get few statistics.
 Among them, you can read that you extended about half of last exons,
 then you could add 29 exons to 26 transcripts.
 

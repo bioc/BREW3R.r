@@ -41,13 +41,13 @@ extract_last_exon <- function(
 #' @param input_gr_to_extend A GRanges with exons to extend
 #'                           (strand * are excluded)
 #' @param input_gr_to_overlap A GRanges with intervals to overlap
-#' @param verbose A boolean that indicates if messages should appear to indicate
-#'                progression.
+#' @param verbose An integer that indicates the level of verbosity
+#'                0 = silent, 1 = statistics, 2 = progression.
 #' @return A GRanges which is a subset of `input_gr_to_extend` where
 #'         new_start and new_end have been added to match the 3' end of
 #'         `input_gr_to_overlap` if they overlap
 get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
-                                  verbose = TRUE) {
+                                  verbose = 1) {
     # Remove strands which are not in + - and non exonic features
     input_gr_to_extend <- subset(
         input_gr_to_extend,
@@ -56,7 +56,7 @@ get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
     )
     # Remove non-exonic features from input_gr_to_overlap
     input_gr_to_overlap <- subset(input_gr_to_overlap, type == "exon")
-    if (verbose) {
+    if (verbose > 1) {
         message("Compute overlap. Between ", length(input_gr_to_extend),
                 " exons and ", length(input_gr_to_overlap), " exons.")
     }
@@ -65,7 +65,7 @@ get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
         input_gr_to_extend,
         input_gr_to_overlap
     ))
-    if (verbose) {
+    if (verbose > 1) {
         message("Split by overlap.")
     }
     input_gr_to_overlap_intersect <- GenomicRanges::split(
@@ -80,7 +80,7 @@ get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
         GenomicRanges::start(input_gr_to_overlap_intersect_range)
     input_gr_to_extend_intersect$max_end <-
         GenomicRanges::end(input_gr_to_overlap_intersect_range)
-    if (verbose) {
+    if (verbose > 1) {
         message("Compute new start and new end.")
     }
     input_gr_to_extend_intersect$new_start <-
@@ -95,7 +95,7 @@ get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
     input_gr_to_extend_intersect$min_start <- NULL
     input_gr_to_extend_intersect$max_end <- NULL
 
-    if (verbose) {
+    if (verbose > 1) {
         message("Select extended exons.")
     }
 
@@ -424,8 +424,8 @@ adjust_for_collision <- function(input_gr) {
 #' @param input_gr_to_extend A GRanges to be complemented
 #' @param input_gr_with_new_exons A GRanges with exons to be added
 #' to the first one (exons with strand '*' are excluded)
-#' @param verbose A boolean that indicates if messages should appear to indicate
-#'                progression.
+#' @param verbose An integer that indicates the level of verbosity
+#'                0 = silent, 1 = statistics, 2 = progression.
 #' @importFrom dplyr %>%
 #' @return A GRanges identical to `input_gr_to_extend` with new exons
 #'         whose `exon_id` contains BREW3R. `exon_number` may have changed.
@@ -436,7 +436,7 @@ adjust_for_collision <- function(input_gr) {
 #' same existing transcript_id so introns maybe artificial introns.
 #'
 add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
-                          verbose = TRUE) {
+                          verbose = 1) {
     # Subset input_gr_with_new_exons
     input_gr_with_new_exons <- subset(
         input_gr_with_new_exons,
@@ -446,18 +446,18 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
     input_gr_with_new_exons$id <- seq_along(input_gr_with_new_exons)
     input_gr_to_extend$id <- paste0(input_gr_to_extend$exon_id, "_",
                                     input_gr_to_extend$transcript_id)
-    if (verbose) {
+    if (verbose > 1) {
         message("Extract last exon of first GRanges.")
     }
     # Get the last exons of input_gr_to_extend
     input_gr_last <- extract_last_exon(input_gr_to_extend)
     # First find exons which 'ends' at the same position
-    if (verbose) {
+    if (verbose > 1) {
         message("Compute overlap with second GRanges.")
     }
     ov <- suppressWarnings(GenomicRanges::findOverlaps(input_gr_last, input_gr_with_new_exons))
     ov_df <- as.data.frame(ov)
-    if (verbose) {
+    if (verbose > 1) {
         message("Only keep those with identical three prime.")
     }
     # Get extremities
@@ -479,7 +479,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
         input_gr_to_extend$id <- NULL
         return(input_gr_to_extend)
     }
-    if (verbose) {
+    if (verbose > 1) {
         message("Only keep those with exons to be added.")
     }
     # We need to check if it does not matches transcript subject extremity
@@ -513,7 +513,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
                                        "subject_transcript_extremity"]
 
     # Remove overlaps where it is the transcript subject extremity
-    if (verbose) {
+    if (verbose > 1) {
         message("Remove overlaps where transcript 3' matches between both")
     }
     ov_df_potential <- subset(
@@ -525,7 +525,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
         input_gr_to_extend$id <- NULL
         return(input_gr_to_extend)
     }
-    if (verbose) {
+    if (verbose > 1) {
         message("Attribute exons to be added to the good transcript (this is slow).")
     }
 
@@ -558,11 +558,14 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
                start > query_end,
                end < query_start)
     )
-    if (verbose) {
+    if (verbose > 0) {
         message("Found ", length(unique(all_exons_interesting$id)), " exons",
-                " that could be included into ", length(unique(all_exons_interesting$queryHits)),
-                " transcripts. Check added exons which would ",
+                " that may be included into ", length(unique(all_exons_interesting$queryHits)),
+                " transcripts.")
+        if (verbose > 1) {
+            message("Check added exons which would ",
                 "overlap existing annotations.")
+        }
     }
 
 
@@ -628,7 +631,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
         ov_new_exons_summary[
             all_exons_interesting$transcript_pair,
             "first_colliding_base"]
-    if (verbose) {
+    if (verbose > 1) {
         message("Remove new candidate exons",
                 " three prime of overlap with existing annotations.")
     }
@@ -640,12 +643,15 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
                    (strand == "+" & start < first_colliding_base) |
                    (strand == "-" & end > first_colliding_base)
         )
-    if (verbose) {
+    if (verbose > 0) {
         message("Stay ", length(unique(all_exons_interesting$id)), " candidate",
-                "exons that could be included into ",
+                " exons that may be included into ",
                 length(unique(all_exons_interesting$queryHits)),
-                " transcripts.\nAdjust start/end of candidate exons to not ",
+                " transcripts.")
+        if (verbose > 1) {
+            message("Adjust start/end of candidate exons to not ",
                 "overlap with existing annotations.")
+        }
     }
 
     if (nrow(all_exons_interesting) == 0) {
@@ -677,7 +683,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
     # gene_1:           ----/    \----/\--->
     # While the second intron is not a real intron...
 
-    if (verbose) {
+    if (verbose > 1) {
         message("Combine exons extending the same transcript.")
     }
     all_exons_to_add_gr <- unlist(
@@ -693,11 +699,14 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
     all_exons_to_add_gr$transcript_id <- names(all_exons_to_add_gr)
     names(all_exons_to_add_gr) <- NULL
 
-    if (verbose) {
+    if (verbose > 0) {
         message("Finally ", length(all_exons_to_add_gr), " combined exons",
                 " will be included into ",
                 length(unique(all_exons_to_add_gr$transcript_id)),
-                " transcripts.\nAnnotate new exons with transcript info.")
+                " transcripts.")
+        if (verbose > 1) {
+            message("Annotate new exons with transcript info.")
+        }
     }
     # Add transcript_id infos:
     transcript_annotation <-
@@ -713,7 +722,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
                                     transcript_annotation$transcript_id), ]
     all_exons_to_add_gr$type <- "exon"
 
-    if (verbose) {
+    if (verbose > 1) {
         message("Annotate new exons with exon_id.")
     }
     # I add exon_id
@@ -742,7 +751,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
         )
 
 
-    if (verbose) {
+    if (verbose > 1) {
         message("Update exon_number.")
     }
     # Update exon_number

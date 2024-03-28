@@ -4,7 +4,7 @@
 \alias{get_extending_overlap}
 \title{Overlap exons and filter for potential extension}
 \usage{
-get_extending_overlap(input_gr_to_extend, input_gr_to_overlap, verbose = TRUE)
+get_extending_overlap(input_gr_to_extend, input_gr_to_overlap, verbose = 1)
 }
 \arguments{
 \item{input_gr_to_extend}{A GRanges with exons to extend
@@ -12,8 +12,8 @@ get_extending_overlap(input_gr_to_extend, input_gr_to_overlap, verbose = TRUE)
 
 \item{input_gr_to_overlap}{A GRanges with intervals to overlap}
 
-\item{verbose}{A boolean that indicates if messages should appear to indicate
-progression.}
+\item{verbose}{An integer that indicates the level of verbosity
+0 = silent, 1 = statistics, 2 = progression.}
 }
 \value{
 A GRanges which is a subset of `input_gr_to_extend` where

@@ -13,8 +13,8 @@
 #'                      should be added
 #' @param overlap_resolution_fn A file path where the dataframe giving details
 #'                              on the collision resolution is written
-#' @param verbose A boolean that indicates if messages should appear to indicate
-#'                progression and some statistics.
+#' @param verbose An integer that indicates the level of verbosity
+#'                0 = silent, 1 = statistics, 2 = progression.
 #' @param debug A boolean that indicates if multiple intermediate results
 #'              should be written to output during the process
 #' @return A GRanges based on `input_gr_to_extend` where exons are extended
@@ -58,7 +58,7 @@
 #'
 extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
                            extend_existing_exons = TRUE, add_new_exons = TRUE,
-                           overlap_resolution_fn = NULL, verbose = TRUE,
+                           overlap_resolution_fn = NULL, verbose = 1,
                            debug = FALSE) {
     # Apply the filters
     input_gr_to_extend <- subset(
@@ -68,13 +68,14 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
     )
 
     if (extend_existing_exons) {
-        if (verbose) {
+        if (verbose > 1) {
             message("Extend last exons.\nGetting last exons.")
         }
         # First get the last exons
         last_exons_gr <- extract_last_exon(input_gr_to_extend)
-        if (verbose) {
-            message("Extending them.")
+        if (verbose > 0) {
+            message("Found ", length(last_exons_gr),
+                    " last exons to potentially extend.")
         }
         if (debug) {
             message("last_exons_gr")
@@ -85,9 +86,11 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
             apply_coo_changes(get_extending_overlap(last_exons_gr,
                                                     input_gr_to_overlap,
                                                     verbose))
-        if (verbose) {
-            message(length(last_exons_gr_extended), " exons could be extended.",
-                    " Checking for collision with other genes.")
+        if (verbose > 0) {
+            message(length(last_exons_gr_extended), " exons may be extended.")
+            if (verbose > 1) {
+                message("Checking for collision with other genes.")
+            }
         }
         if (debug) {
             message("last_exons_gr_extended")
@@ -151,7 +154,7 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
             extension_resolved_gr$exon_id[modified],
             ".ext"
         )
-        if (verbose) {
+        if (verbose > 0) {
             message(sum(modified), " exons have been extended",
                     " while preventing collision with other genes.")
         }
@@ -166,14 +169,14 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         extension_resolved_gr <- input_gr_to_extend
     }
     if (add_new_exons) {
-        if (verbose) {
+        if (verbose > 1) {
             message("Adding exons after existing ones.")
         }
         extension_resolved_gr_new_exons <-
             add_new_exons(extension_resolved_gr,
                           input_gr_to_overlap,
                           verbose = verbose)
-        if (verbose) {
+        if (verbose > 1) {
             message("Added ",
                     length(grep("BREW3R",
                                 extension_resolved_gr_new_exons$exon_id)) -
