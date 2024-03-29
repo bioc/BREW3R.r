@@ -333,7 +333,8 @@ test_that("case8 works", {
 # input_gene2:                   --->
 # to_overlap:   ----/\--------/\---/  \---->
 
-test_that("case9 works", {
+test_that("case9 works with debug and verbose and overlapresolution", {
+    overlap_resolution_fn <- tempfile()
     expect_equal(
         sort(extend_granges(
             GenomicRanges::GRanges(
@@ -347,7 +348,8 @@ test_that("case9 works", {
                 exon_id = c("exon1", "exon2")
             ),
             input_to_overlap_case5_9,
-            verbose = 0
+            verbose = 2, debug = TRUE,
+            overlap_resolution_fn = overlap_resolution_fn
         )),
         GenomicRanges::GRanges(
             seqnames = "chr1",
