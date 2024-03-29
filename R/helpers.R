@@ -9,28 +9,35 @@
 #'                           which should be used to group
 #' @param invert A boolean that indicates if you want all except the last exons
 #' @return A GRanges which contains a subset of `input_gr`
-#' @importFrom dplyr %>%
 extract_last_exon <- function(
         input_gr, groupping_variable = "transcript_id", invert = FALSE
 ) {
     # I only work with exons
     exons_gr <- base::subset(input_gr, type == "exon")
-
-    # Get the last exons row numbers
-    indices_last_exons <- as.data.frame(exons_gr) %>%
-        dplyr::mutate(row_number = base::seq_len(dplyr::n())) %>%
-        dplyr::group_by(!!!dplyr::syms(groupping_variable)) %>%
-        dplyr::mutate(is_last = ifelse(strand == "+",
-                                       end == max(end),
-                                       start == min(start))) %>%
-        dplyr::ungroup() %>%
-        dplyr::filter(is_last) %>%
-        dplyr::select(row_number)
+    # I split by groupping_variable
+    exons_gr_split <-
+        GenomicRanges::split(
+            exons_gr,
+            GenomicRanges::mcols(exons_gr)[, groupping_variable]
+        )
+    # I get the three prime extremity
+    group_range <- unlist(range(exons_gr_split))
+    group_extremity <- GenomicRanges::start(
+        GenomicRanges::resize(group_range, width = 1, fix = "end")
+    )
+    names(group_extremity) <- names(group_range)
+    indices_last_exons <- which(
+        GenomicRanges::start(
+            GenomicRanges::resize(exons_gr, width = 1, fix = "end")
+        ) ==
+            group_extremity[GenomicRanges::mcols(exons_gr)[,
+                                                           groupping_variable]]
+    )
     # Return the corresponding GRanges object
     if (invert) {
-        return(exons_gr[-indices_last_exons$row_number])
+        return(exons_gr[-indices_last_exons])
     } else {
-        return(exons_gr[indices_last_exons$row_number])
+        return(exons_gr[indices_last_exons])
     }
 }
 
