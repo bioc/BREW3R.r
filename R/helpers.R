@@ -46,13 +46,14 @@ extract_last_exon <- function(
 #' @return A GRanges which is a subset of `input_gr_to_extend` where
 #'         new_start and new_end have been added to match the 3' end of
 #'         `input_gr_to_overlap` if they overlap
+#' @importFrom GenomicRanges strand
 get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
                                   verbose = 1) {
     # Remove strands which are not in + - and non exonic features
     input_gr_to_extend <- subset(
         input_gr_to_extend,
-        as.character(GenomicRanges::strand(input_gr_to_extend)) %in% c("+", "-") &
-            type == "exon"
+        type == "exon" &
+            as.character(strand(input_gr_to_extend)) != "*"
     )
     # Remove non-exonic features from input_gr_to_overlap
     input_gr_to_overlap <- subset(input_gr_to_overlap, type == "exon")
@@ -84,11 +85,11 @@ get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
         message("Compute new start and new end.")
     }
     input_gr_to_extend_intersect$new_start <-
-        ifelse(GenomicRanges::strand(input_gr_to_extend_intersect) == "+",
+        ifelse(strand(input_gr_to_extend_intersect) == "+",
                GenomicRanges::start(input_gr_to_extend_intersect),
                input_gr_to_extend_intersect$min_start)
     input_gr_to_extend_intersect$new_end <-
-        ifelse(GenomicRanges::strand(input_gr_to_extend_intersect) == "+",
+        ifelse(strand(input_gr_to_extend_intersect) == "+",
                input_gr_to_extend_intersect$max_end,
                GenomicRanges::end(input_gr_to_extend_intersect))
     # Remove min_start and max_end
@@ -118,14 +119,15 @@ get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
 #' @return A GRanges identical to `input_gr` except that
 #'         start and end are now new_start new_end and
 #'         initial start and end have been stored into old_start and old_end
-#'
+#' @importFrom GenomicRanges start<-
+#' @importFrom GenomicRanges end<-
 apply_coo_changes <- function(input_gr) {
     # Store current coordinates
     input_gr$old_start <- GenomicRanges::start(input_gr)
     input_gr$old_end <- GenomicRanges::end(input_gr)
     # Apply new coordinates
-    input_gr <- GenomicRanges::`start<-`(input_gr, value = input_gr$new_start)
-    input_gr <- GenomicRanges::`end<-`(input_gr, value = input_gr$new_end)
+    start(input_gr) <- input_gr$new_start
+    end(input_gr) <- input_gr$new_end
     # Remove unnecessary columns
     input_gr$new_start <- NULL
     input_gr$new_end <- NULL
@@ -427,6 +429,7 @@ adjust_for_collision <- function(input_gr) {
 #' @param verbose An integer that indicates the level of verbosity
 #'                0 = silent, 1 = statistics, 2 = progression.
 #' @importFrom dplyr %>%
+#' @importFrom GenomicRanges strand
 #' @return A GRanges identical to `input_gr_to_extend` with new exons
 #'         whose `exon_id` contains BREW3R. `exon_number` may have changed.
 #' @details
@@ -440,7 +443,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
     # Subset input_gr_with_new_exons
     input_gr_with_new_exons <- subset(
         input_gr_with_new_exons,
-        as.character(GenomicRanges::strand(input_gr_with_new_exons)) %in% c("+", "-")
+        strand(input_gr_with_new_exons) != "*"
     )
     # Add an id:
     input_gr_with_new_exons$id <- seq_along(input_gr_with_new_exons)
@@ -462,12 +465,12 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
     }
     # Get extremities
     ov_df$query_extremity <- ifelse(
-        GenomicRanges::strand(input_gr_last[ov_df$queryHits]) == "+",
+        strand(input_gr_last[ov_df$queryHits]) == "+",
         GenomicRanges::end(input_gr_last[ov_df$queryHits]),
         GenomicRanges::start(input_gr_last[ov_df$queryHits])
     )
     ov_df$subject_extremity <- ifelse(
-        GenomicRanges::strand(input_gr_with_new_exons[ov_df$subjectHits]) == "+",
+        strand(input_gr_with_new_exons[ov_df$subjectHits]) == "+",
         GenomicRanges::end(input_gr_with_new_exons[ov_df$subjectHits]),
         GenomicRanges::start(input_gr_with_new_exons[ov_df$subjectHits])
     )
@@ -564,7 +567,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
                 " transcripts.")
         if (verbose > 1) {
             message("Check added exons which would ",
-                "overlap existing annotations.")
+                    "overlap existing annotations.")
         }
     }
 
@@ -597,7 +600,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
         GenomicRanges::end(input_gr_to_extend_intersected)
     ov_new_exons$to_extend_strand <-
         as.character(
-            GenomicRanges::strand(input_gr_to_extend_intersected)
+            strand(input_gr_to_extend_intersected)
         )
 
     # Get the 5' end of the exon (from input_gr_to_extend)
@@ -614,7 +617,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
     ov_new_exons_summary <- ov_new_exons %>%
         dplyr::mutate(transcript_pair =
                           paste0(transcript_id, "_", transcript_id_to_extend)
-                      ) %>%
+        ) %>%
         dplyr::group_by(transcript_pair) %>%
         dplyr::summarise(first_colliding_base = ifelse(strand[1] == "+",
                                                        min(to_extend_5p),
@@ -650,7 +653,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
                 " transcripts.")
         if (verbose > 1) {
             message("Adjust start/end of candidate exons to not ",
-                "overlap with existing annotations.")
+                    "overlap with existing annotations.")
         }
     }
 
@@ -804,10 +807,10 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
     if (my_mode == "transcript") {
         gr_to_annotate_plus <-
             subset(gr_to_annotate,
-                   GenomicRanges::strand(gr_to_annotate) == "+")
+                   strand(gr_to_annotate) == "+")
         gr_to_annotate_minus <-
             subset(gr_to_annotate,
-                   GenomicRanges::strand(gr_to_annotate) == "-")
+                   strand(gr_to_annotate) == "-")
         gr_to_annotate <- c(
             gr_to_annotate_plus,
             rev(gr_to_annotate_minus)

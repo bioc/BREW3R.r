@@ -24,6 +24,7 @@
 #' @details
 #' During the extension process a special care is taking to prevent extension
 #' which would lead to overlap between different gene_ids.
+#' @importFrom GenomicRanges strand
 #' @export
 #' @examples
 #' # Very simple case
@@ -64,7 +65,7 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
     input_gr_to_extend <- subset(
         input_gr_to_extend,
         type == "exon" &
-            as.character(GenomicRanges::strand(input_gr_to_extend)) != "*"
+            as.character(strand(input_gr_to_extend)) != "*"
     )
 
     if (extend_existing_exons) {
