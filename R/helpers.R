@@ -34,20 +34,21 @@ extract_last_exon <- function(
     }
 }
 
-#' Overlap exons and filter for potential extension
+#' Overlap exons and extend three prime end
 #'
-#' A function that from 2 GRanges returns a dataframe describing
-#' overlaps that could lead to extension of the first GRanges
+#' A function that from 2 GRanges returns a subset of the first
+#' GRanges which have been extended using the second GRanges
 #' @param input_gr_to_extend A GRanges with exons to extend
 #'                           (strand * are excluded)
 #' @param input_gr_to_overlap A GRanges with intervals to overlap
 #' @param verbose An integer that indicates the level of verbosity
 #'                0 = silent, 1 = statistics, 2 = progression.
 #' @return A GRanges which is a subset of `input_gr_to_extend` where
-#'         new_start and new_end have been added to match the 3' end of
+#'         3' end have been modified to match the 3' end of
 #'         `input_gr_to_overlap` if they overlap
+#'         (initial start and end have been stored into old_start and old_end)
 #' @importFrom GenomicRanges strand
-get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
+extend_using_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
                                   verbose = 1) {
     # Remove strands which are not in + - and non exonic features
     input_gr_to_extend <- subset(
@@ -69,69 +70,41 @@ get_extending_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
     if (verbose > 1) {
         message("Split by overlap.")
     }
+    # Group all overlaps into a single range
     input_gr_to_overlap_intersect <- GenomicRanges::split(
         input_gr_to_overlap[S4Vectors::subjectHits(full_overlap)],
         S4Vectors::queryHits(full_overlap)
     )
     input_gr_to_overlap_intersect_range <-
         unlist(range(input_gr_to_overlap_intersect))
+    # Select the corresponding to_extend
     input_gr_to_extend_intersect <-
         input_gr_to_extend[unique(S4Vectors::queryHits(full_overlap))]
-    input_gr_to_extend_intersect$min_start <-
-        GenomicRanges::start(input_gr_to_overlap_intersect_range)
-    input_gr_to_extend_intersect$max_end <-
-        GenomicRanges::end(input_gr_to_overlap_intersect_range)
-    if (verbose > 1) {
-        message("Compute new start and new end.")
-    }
-    input_gr_to_extend_intersect$new_start <-
-        ifelse(strand(input_gr_to_extend_intersect) == "+",
-               GenomicRanges::start(input_gr_to_extend_intersect),
-               input_gr_to_extend_intersect$min_start)
-    input_gr_to_extend_intersect$new_end <-
-        ifelse(strand(input_gr_to_extend_intersect) == "+",
-               input_gr_to_extend_intersect$max_end,
-               GenomicRanges::end(input_gr_to_extend_intersect))
-    # Remove min_start and max_end
-    input_gr_to_extend_intersect$min_start <- NULL
-    input_gr_to_extend_intersect$max_end <- NULL
-
-    if (verbose > 1) {
-        message("Select extended exons.")
-    }
-
-    # Remove non extending intersections
-    input_gr_to_extend_interesect_annotated <- subset(
-        input_gr_to_extend_intersect,
-        new_start < start | new_end > end
+    # Calculate the potential_extension
+    potential_extention <- ifelse(
+        strand(input_gr_to_extend_intersect) == "+",
+        GenomicRanges::end(input_gr_to_overlap_intersect_range) -
+            GenomicRanges::end(input_gr_to_extend_intersect),
+        GenomicRanges::start(input_gr_to_extend_intersect) -
+            GenomicRanges::start(input_gr_to_overlap_intersect_range)
     )
-    # Remove the names
-    names(input_gr_to_extend_interesect_annotated) <- NULL
-    return(input_gr_to_extend_interesect_annotated)
-}
-
-#' Apply start end changes
-#'
-#' A function that from a GRanges with 'new_start' and 'new_end'
-#' Change the starts and ends
-#' and store old starts/ends into 'old_start', 'old_end'.
-#' @param input_gr A GRanges with 2 metas: 'new_start' and 'new_end'
-#' @return A GRanges identical to `input_gr` except that
-#'         start and end are now new_start new_end and
-#'         initial start and end have been stored into old_start and old_end
-#' @importFrom GenomicRanges start<-
-#' @importFrom GenomicRanges end<-
-apply_coo_changes <- function(input_gr) {
-    # Store current coordinates
-    input_gr$old_start <- GenomicRanges::start(input_gr)
-    input_gr$old_end <- GenomicRanges::end(input_gr)
-    # Apply new coordinates
-    start(input_gr) <- input_gr$new_start
-    end(input_gr) <- input_gr$new_end
-    # Remove unnecessary columns
-    input_gr$new_start <- NULL
-    input_gr$new_end <- NULL
-    return(input_gr)
+    # Select only true extension
+    input_gr_to_extend_intersect_selected <-
+        input_gr_to_extend_intersect[potential_extention > 0]
+    potential_extention_selected <-
+        potential_extention[potential_extention > 0]
+    # Store old coordinates
+    input_gr_to_extend_intersect_selected$old_start <-
+        GenomicRanges::start(input_gr_to_extend_intersect_selected)
+    input_gr_to_extend_intersect_selected$old_end <-
+        GenomicRanges::end(input_gr_to_extend_intersect_selected)
+    # Extend
+    input_gr_to_extend_intersect_selected_extended <-
+        GenomicRanges::resize(input_gr_to_extend_intersect_selected,
+               width =
+                   GenomicRanges::width(input_gr_to_extend_intersect_selected) +
+                   potential_extention_selected)
+    return(input_gr_to_extend_intersect_selected_extended)
 }
 
 #' Get overlaps from different genes
@@ -149,7 +122,6 @@ overlap_different_genes <- function(gr1, gr2) {
     ov_df <- as.data.frame(ov)
     ov_df$query_gene_id <- gr1$gene_id[ov_df$queryHits]
     ov_df$subject_gene_id <- gr2$gene_id[ov_df$subjectHits]
-
     return(subset(ov_df, query_gene_id != subject_gene_id))
 }
 

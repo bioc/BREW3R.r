@@ -84,9 +84,8 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         }
         # Then, these exons are extended ignoring potential collisions
         last_exons_gr_extended <-
-            apply_coo_changes(get_extending_overlap(last_exons_gr,
-                                                    input_gr_to_overlap,
-                                                    verbose))
+            extend_using_overlap(last_exons_gr, input_gr_to_overlap,
+                                 verbose)
         if (verbose > 0) {
             message(length(last_exons_gr_extended), " exons may be extended.")
             if (verbose > 1) {
