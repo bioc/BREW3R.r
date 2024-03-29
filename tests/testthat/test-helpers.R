@@ -661,7 +661,8 @@ test_that("add_new_exons works on case 5", {
     expect_equal(
         add_new_exons(
             input_gr_case5_extended_fixed,
-            input_to_overlap_case5_9
+            input_to_overlap_case5_9,
+            verbose = 0
             ),
         GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -684,7 +685,8 @@ test_that("add_new_exons works on case 9", {
     expect_equal(
         add_new_exons(
             input_gr_case9_pot_extended,
-            input_to_overlap_case5_9
+            input_to_overlap_case5_9,
+            verbose = 0
         ),
         GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -728,7 +730,8 @@ test_that("add_new_exons works when run twice", {
                 transcript_id = "transcriptA",
                 type = "exon",
                 exon_id = c("exonA", "exonB")
-            )
+            ),
+            verbose = 0
         )),
         sort(GenomicRanges::GRanges(
             seqnames = "chr1",

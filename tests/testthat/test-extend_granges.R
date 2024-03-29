@@ -39,7 +39,8 @@ test_that("case1 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2")
             ),
-            input_to_overlap_case1_2_3_4_6_7_8
+            input_to_overlap_case1_2_3_4_6_7_8,
+            verbose = 0
         )),
         GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -72,7 +73,8 @@ test_that("case2 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2")
             ),
-            input_to_overlap_case1_2_3_4_6_7_8
+            input_to_overlap_case1_2_3_4_6_7_8,
+            verbose = 0
         )),
         GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -105,7 +107,8 @@ test_that("case3 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2")
             ),
-            input_to_overlap_case1_2_3_4_6_7_8
+            input_to_overlap_case1_2_3_4_6_7_8,
+            verbose = 0
         )),
         GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -138,7 +141,8 @@ test_that("case4 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2")
             ),
-            input_to_overlap_case1_2_3_4_6_7_8
+            input_to_overlap_case1_2_3_4_6_7_8,
+            verbose = 0
         )),
         GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -171,7 +175,8 @@ test_that("case5 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2")
             ),
-            input_to_overlap_case5_9
+            input_to_overlap_case5_9,
+            verbose = 0
         )),
         GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -206,7 +211,8 @@ test_that("case6 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon1", "exon2")
             ),
-            input_to_overlap_case1_2_3_4_6_7_8
+            input_to_overlap_case1_2_3_4_6_7_8,
+            verbose = 0
         )),
         sort(GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -239,7 +245,8 @@ test_that("case6bis works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2", "exon3")
             ),
-            input_to_overlap_case1_2_3_4_6_7_8
+            input_to_overlap_case1_2_3_4_6_7_8,
+            verbose = 0
         )),
         sort(GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -271,7 +278,8 @@ test_that("case7 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2", "exon3")
             ),
-            input_to_overlap_case1_2_3_4_6_7_8
+            input_to_overlap_case1_2_3_4_6_7_8,
+            verbose = 0
         )),
         sort(GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -304,7 +312,8 @@ test_that("case8 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2", "exon3")
             ),
-            input_to_overlap_case1_2_3_4_6_7_8
+            input_to_overlap_case1_2_3_4_6_7_8,
+            verbose = 0
         )),
         sort(GenomicRanges::GRanges(
             seqnames = "chr1",
@@ -337,7 +346,8 @@ test_that("case9 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2")
             ),
-            input_to_overlap_case5_9
+            input_to_overlap_case5_9,
+            verbose = 0
         )),
         GenomicRanges::GRanges(
             seqnames = "chr1",
