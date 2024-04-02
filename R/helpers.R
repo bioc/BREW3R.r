@@ -244,43 +244,43 @@ adjust_for_collision <- function(input_gr) {
             )
         # Store solving into a data.frame
         pot_issues_df_temp <- as.data.frame(extended_gr_issues)
-            pot_issues_df_temp$issue <- "tail_to_head_collision"
-            pot_issues_df_temp$solution <- "smaller extension"
-            pot_issues_df <- rbind(pot_issues_df, pot_issues_df_temp)
-        }
+        pot_issues_df_temp$issue <- "tail_to_head_collision"
+        pot_issues_df_temp$solution <- "smaller extension"
+        pot_issues_df <- rbind(pot_issues_df, pot_issues_df_temp)
+    }
     # Now we compute overlap between extension and input_gr
-        # We can restrict to exons with issues:
-        new_extended_gr <- subset(input_gr, old_width < width)
-        # Select only the extension
-        new_extension_gr <- GenomicRanges::resize(
-            new_extended_gr,
-            GenomicRanges::width(new_extended_gr) - new_extended_gr$old_width,
-            fix = "end"
-        )
-        new_pot_issues <- overlap_different_genes(
-            new_extension_gr,
+    # We can restrict to exons with issues:
+    new_extended_gr <- subset(input_gr, old_width < width)
+    # Select only the extension
+    new_extension_gr <- GenomicRanges::resize(
+        new_extended_gr,
+        GenomicRanges::width(new_extended_gr) - new_extended_gr$old_width,
+        fix = "end"
+    )
+    new_pot_issues <- overlap_different_genes(
+        new_extension_gr,
         input_gr
-        )
+    )
 
-        if (nrow(new_pot_issues) > 0) {
-            # The only case that is remaining:
-            # old
-            # ----->
-            #  ---->
-            # new
-            # ------------->
-            #  ------------>
-            new_pot_issues$query_id <-
-                new_extension_gr$id[new_pot_issues$queryHits]
-            to_restore <- which(input_gr$id %in% new_pot_issues$query_id)
-            input_gr[to_restore] <-
-                original_gr[to_restore]
-            pot_issues_df_temp <-
-                as.data.frame(new_extension_gr[new_pot_issues$queryHits])
-                pot_issues_df_temp$issue <- "both_equal_extension"
-                pot_issues_df_temp$solution <- "no extension"
-                pot_issues_df_temp$collision_base <- NA
-            pot_issues_df <- rbind(pot_issues_df, pot_issues_df_temp)
+    if (nrow(new_pot_issues) > 0) {
+        # The only case that is remaining:
+        # old
+        # ----->
+        #  ---->
+        # new
+        # ------------->
+        #  ------------>
+        new_pot_issues$query_id <-
+            new_extension_gr$id[new_pot_issues$queryHits]
+        to_restore <- which(input_gr$id %in% new_pot_issues$query_id)
+        input_gr[to_restore] <-
+            original_gr[to_restore]
+        pot_issues_df_temp <-
+            as.data.frame(new_extension_gr[new_pot_issues$queryHits])
+        pot_issues_df_temp$issue <- "both_equal_extension"
+        pot_issues_df_temp$solution <- "no extension"
+        pot_issues_df_temp$collision_base <- NA
+        pot_issues_df <- rbind(pot_issues_df, pot_issues_df_temp)
     }
     # Remove the id:
     input_gr$id <- NULL
@@ -299,7 +299,6 @@ adjust_for_collision <- function(input_gr) {
 #' to the first one (exons with strand '*' are excluded)
 #' @param verbose An integer that indicates the level of verbosity
 #'                0 = silent, 1 = statistics, 2 = progression.
-#' @importFrom dplyr %>%
 #' @importFrom GenomicRanges strand
 #' @return A GRanges identical to `input_gr_to_extend` with new exons
 #'         whose `exon_id` contains BREW3R. `exon_number` may have changed.
@@ -329,108 +328,88 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
     if (verbose > 1) {
         message("Compute overlap with second GRanges.")
     }
-    ov <- suppressWarnings(GenomicRanges::findOverlaps(input_gr_last, input_gr_with_new_exons))
+    last_base_input_gr_last <-
+        GenomicRanges::resize(
+            input_gr_last, width = 1, fix = "end"
+        )
+    last_base_input_gr_with_new_exons <-
+        GenomicRanges::resize(
+            input_gr_with_new_exons, width = 1, fix = "end"
+        )
+    ov <- suppressWarnings(GenomicRanges::findOverlaps(
+        last_base_input_gr_last,
+        last_base_input_gr_with_new_exons
+    ))
     ov_df <- as.data.frame(ov)
-    if (verbose > 1) {
-        message("Only keep those with identical three prime.")
-    }
-    # Get extremities
-    ov_df$query_extremity <- ifelse(
-        strand(input_gr_last[ov_df$queryHits]) == "+",
-        GenomicRanges::end(input_gr_last[ov_df$queryHits]),
-        GenomicRanges::start(input_gr_last[ov_df$queryHits])
-    )
-    ov_df$subject_extremity <- ifelse(
-        strand(input_gr_with_new_exons[ov_df$subjectHits]) == "+",
-        GenomicRanges::end(input_gr_with_new_exons[ov_df$subjectHits]),
-        GenomicRanges::start(input_gr_with_new_exons[ov_df$subjectHits])
-    )
-    ov_df_potential <- subset(
-        ov_df,
-        query_extremity == subject_extremity
-    )
-    if (nrow(ov_df_potential) == 0) {
+    if (nrow(ov_df) == 0) {
         input_gr_to_extend$id <- NULL
         return(input_gr_to_extend)
     }
     if (verbose > 1) {
         message("Only keep those with exons to be added.")
     }
-    # We need to check if it does not matches transcript subject extremity
     # First get transcript_id from exon overlapped
-    ov_df_potential$subject_transcript_id <-
-        input_gr_with_new_exons$transcript_id[ov_df_potential$subjectHits]
+    ov_df$subject_transcript_id <-
+        input_gr_with_new_exons$transcript_id[ov_df$subjectHits]
 
     # Get transcript_extremity and transcript_id from input_gr_with_new_exons
     input_gr_with_new_exons_subset <- subset(
         input_gr_with_new_exons,
-        transcript_id %in% ov_df_potential$subject_transcript_id
+        transcript_id %in% ov_df$subject_transcript_id
     )
     input_gr_with_new_exons_subset_range <-
         unlist(range(
             GenomicRanges::split(input_gr_with_new_exons_subset,
                                  input_gr_with_new_exons_subset$transcript_id)
         ))
-    # Here seems slow
-    subject_transcript_extremity_t <-
-        GenomicRanges::as.data.frame(input_gr_with_new_exons_subset_range)
-    rownames(subject_transcript_extremity_t) <-
-        names(input_gr_with_new_exons_subset_range)
-    subject_transcript_extremity_t$subject_transcript_extremity <-
-        with(subject_transcript_extremity_t,
-             ifelse(strand == "+",
-                    end,
-                    start)
-        )
-    ov_df_potential$subject_transcript_extremity <-
-        subject_transcript_extremity_t[ov_df_potential$subject_transcript_id,
-                                       "subject_transcript_extremity"]
-
     # Remove overlaps where it is the transcript subject extremity
     if (verbose > 1) {
         message("Remove overlaps where transcript 3' matches between both")
     }
-    ov_df_potential <- subset(
-        ov_df_potential,
-        subject_extremity != subject_transcript_extremity
+    ov_df <- subset(
+        ov_df,
+        GenomicRanges::start(last_base_input_gr_last[ov_df$queryHits]) !=
+            three_prime_pos(
+                input_gr_with_new_exons_subset_range[
+                    ov_df$subject_transcript_id
+                ]
+            )
     )
-
-    if (nrow(ov_df_potential) == 0) {
+    if (nrow(ov_df) == 0) {
         input_gr_to_extend$id <- NULL
         return(input_gr_to_extend)
     }
     if (verbose > 1) {
-        message("Attribute exons to be added to the good transcript (this is slow).")
+        message("Attribute exons to be added to the good transcript.")
     }
-
     # Get all exons from subject_transcript_id
     # which are after the query_extremity
     # First get all exons of subject_transcript_id
     # (once per queryHits)
-    # This is slow could be improved:
-    all_exons_interesting <- merge(
-        data.frame(
-            queryHits = ov_df_potential$queryHits,
-            transcript_id = ov_df_potential$subject_transcript_id
-        ),
-        as.data.frame(subset(
-            input_gr_with_new_exons,
-            transcript_id %in% ov_df_potential$subject_transcript_id
-        ))
+    input_gr_with_new_exons_subset <- subset(
+        input_gr_with_new_exons,
+        transcript_id %in% ov_df$subject_transcript_id
     )
-    # Annotate with query start/end/transcript_id
-    all_exons_interesting$query_start <-
-        GenomicRanges::start(input_gr_last[all_exons_interesting$queryHits])
-    all_exons_interesting$query_end <-
-        GenomicRanges::end(input_gr_last[all_exons_interesting$queryHits])
-    all_exons_interesting$new_transcript_id <-
-        input_gr_last$transcript_id[all_exons_interesting$queryHits]
-    # Filter
+    input_gr_with_new_exons_subset_split <-
+            GenomicRanges::split(input_gr_with_new_exons_subset,
+                                 input_gr_with_new_exons_subset$transcript_id)
+    nb_exons_per_transcript <- table(input_gr_with_new_exons_subset$transcript_id)
+    all_pot_exons <-
+        unlist(
+            input_gr_with_new_exons_subset_split[ov_df$subject_transcript_id]
+        )
+    all_pot_exons$queryHits <- rep(
+        ov_df$queryHits, nb_exons_per_transcript[ov_df$subject_transcript_id]
+    )
+    all_pot_exons$three_prime_query <- GenomicRanges::start(
+        last_base_input_gr_last[all_pot_exons$queryHits]
+    )
+    # Filter, I don't know how to do better
     all_exons_interesting <- subset(
-        all_exons_interesting,
+        all_pot_exons,
         ifelse(strand == "+",
-               start > query_end,
-               end < query_start)
+               start > three_prime_query,
+               end < three_prime_query)
     )
     if (verbose > 0) {
         message("Found ", length(unique(all_exons_interesting$id)), " exons",
@@ -441,81 +420,50 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
                     "overlap existing annotations.")
         }
     }
-
-
     # Check that the new exons do not overlap existing annotations
     # ov_new_exons is the overlap between:
-    # queries = granges corresponding to all_exons_interesting
+    # queries = all_exons_interesting
     # subjects = input_gr_to_extend
-    # What could be improved is to give as gene_id the future gene_id
-    # And select overlaps only for different gene_id
-    ov_new_exons <- as.data.frame(
-        suppressWarnings(GenomicRanges::findOverlaps(
-            input_gr_with_new_exons[match(all_exons_interesting$id,
-                                          input_gr_with_new_exons$id)],
-            input_gr_to_extend
-        ))
-    )
+    # We arbitrarily decide to not include new exons if they overlap with any
+    # existing exons (including those with the same gene_id).
+    ov_new_exons <- suppressWarnings(GenomicRanges::findOverlaps(
+        all_exons_interesting,
+        input_gr_to_extend
+    ))
 
     input_gr_to_extend_intersected <-
-        input_gr_to_extend[ov_new_exons$subjectHits]
+        input_gr_to_extend[S4Vectors::subjectHits(ov_new_exons)]
 
-    ov_new_exons$transcript_id <-
-        all_exons_interesting$transcript_id[ov_new_exons$queryHits]
-    ov_new_exons$transcript_id_to_extend <-
-        all_exons_interesting$new_transcript_id[ov_new_exons$queryHits]
-    ov_new_exons$strand <- all_exons_interesting$strand[ov_new_exons$queryHits]
-    ov_new_exons$to_extend_start <-
-        GenomicRanges::start(input_gr_to_extend_intersected)
-    ov_new_exons$to_extend_end <-
-        GenomicRanges::end(input_gr_to_extend_intersected)
-    ov_new_exons$to_extend_strand <-
-        as.character(
-            strand(input_gr_to_extend_intersected)
-        )
+    # Get the five prime end of the intersected by new transcript_id
+    all_exons_interesting$transcript_id <-
+        last_base_input_gr_last[all_exons_interesting$queryHits]$transcript_id
 
-    # Get the 5' end of the exon (from input_gr_to_extend)
-    # that overlapped with the exons we wanted to add
-    ov_new_exons$to_extend_5p <- with(ov_new_exons,
-                                      ifelse(to_extend_strand == "+",
-                                             to_extend_start,
-                                             to_extend_end)
+    input_gr_to_extend_intersected_range <-
+        unlist(range(
+            GenomicRanges::split(
+                input_gr_to_extend_intersected,
+                all_exons_interesting$transcript_id[
+                    S4Vectors::queryHits(ov_new_exons)
+                ]
+            )
+        ))
+    collision_base_per_transcript <- five_prime_pos(
+        input_gr_to_extend_intersected_range
     )
-
-    # Get of each transcript_id that wanted to be used for extension
-    # And for each transcript_id to be extended
-    # The first colliding base
-    ov_new_exons_summary <- ov_new_exons %>%
-        dplyr::mutate(transcript_pair =
-                          paste0(transcript_id, "_", transcript_id_to_extend)
-        ) %>%
-        dplyr::group_by(transcript_pair) %>%
-        dplyr::summarise(first_colliding_base = ifelse(strand[1] == "+",
-                                                       min(to_extend_5p),
-                                                       max(to_extend_5p))) %>%
-        as.data.frame()
-    rownames(ov_new_exons_summary) <-
-        ov_new_exons_summary$transcript_pair
-    # Add all info to all_exons_interesting
-    all_exons_interesting$transcript_pair <-
-        paste0(all_exons_interesting$transcript_id,
-               "_", all_exons_interesting$new_transcript_id)
-    # This is slow I don't know why:
-    all_exons_interesting$first_colliding_base <-
-        ov_new_exons_summary[
-            all_exons_interesting$transcript_pair,
-            "first_colliding_base"]
+    names(collision_base_per_transcript) <-
+        names(input_gr_to_extend_intersected_range)
+    all_exons_interesting$collision_base <-
+        collision_base_per_transcript[all_exons_interesting$transcript_id]
     if (verbose > 1) {
         message("Remove new candidate exons",
                 " three prime of overlap with existing annotations.")
     }
-
     # Filter exons after collision:
     all_exons_interesting <-
         subset(all_exons_interesting,
-               is.na(first_colliding_base) |
-                   (strand == "+" & start < first_colliding_base) |
-                   (strand == "-" & end > first_colliding_base)
+               is.na(collision_base) |
+                   (strand == "+" & start < collision_base) |
+                   (strand == "-" & end > collision_base)
         )
     if (verbose > 0) {
         message("Stay ", length(unique(all_exons_interesting$id)), " candidate",
@@ -528,24 +476,25 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
         }
     }
 
-    if (nrow(all_exons_interesting) == 0) {
+    if (length(all_exons_interesting) == 0) {
         input_gr_to_extend$id <- NULL
         return(input_gr_to_extend)
     }
-    # Adjust start/end to avoid collision:
-    all_exons_interesting$start <-
-        with(all_exons_interesting,
-             ifelse(strand == "+" | is.na(first_colliding_base) | start > first_colliding_base,
-                    start,
-                    first_colliding_base + 1)
-        )
-    all_exons_interesting$end <-
-        with(all_exons_interesting,
-             ifelse(strand == "-" | is.na(first_colliding_base) | end < first_colliding_base,
-                    end,
-                    first_colliding_base - 1)
-        )
 
+    to_adjust <- which(!is.na(all_exons_interesting$collision_base) &
+                           (GenomicRanges::start(all_exons_interesting) <=
+                                all_exons_interesting$collision_base) &
+                           (GenomicRanges::end(all_exons_interesting) >=
+                                all_exons_interesting$collision_base))
+
+    # Compute the new_widths to avoid tail-to-head
+    new_widths <- abs(all_exons_interesting[to_adjust]$collision_base -
+                          five_prime_pos(all_exons_interesting[to_adjust]))
+    # Apply to all_exons_interesting
+    all_exons_interesting[to_adjust] <- GenomicRanges::resize(
+        all_exons_interesting[to_adjust],
+        new_widths
+    )
     # Here I do something which is not ideal:
     # If multiple transcripts could contribute to extension
     # they will be merged into a single one:
@@ -563,10 +512,8 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
     all_exons_to_add_gr <- unlist(
         GenomicRanges::reduce(
             GenomicRanges::split(
-                GenomicRanges::makeGRangesFromDataFrame(
-                    all_exons_interesting
-                ),
-                all_exons_interesting$new_transcript_id
+                all_exons_interesting,
+                all_exons_interesting$transcript_id
             )
         )
     )
@@ -583,13 +530,16 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons,
         }
     }
     # Add transcript_id infos:
+    mcols_input <- as.data.frame(GenomicRanges::mcols(
+        input_gr_last[unique(all_exons_interesting$queryHits)]
+    ))
     transcript_annotation <-
-        as.data.frame(GenomicRanges::mcols(input_gr_last[unique(all_exons_interesting$queryHits)])) %>%
-        dplyr::select(tidyselect::starts_with("gene_") |
-                          tidyselect::starts_with("transcript_") |
-                          tidyselect::matches("source")) %>%
-        unique() %>%
-        as.data.frame()
+        unique(
+            mcols_input[,
+                        c(grep("^source$", colnames(mcols_input), value = TRUE),
+                          grep("^gene_", colnames(mcols_input), value = TRUE),
+                          grep("^transcript_", colnames(mcols_input), value = TRUE))]
+        )
 
     GenomicRanges::mcols(all_exons_to_add_gr) <-
         transcript_annotation[match(all_exons_to_add_gr$transcript_id,
