@@ -1,3 +1,15 @@
+#' Get three prime position
+#'
+#' A function that from a GRanges
+#' gives the 3' position
+#' @param input_gr A GRanges or GRangeList
+#' @return A vector of integers
+three_prime_pos <- function(input_gr) {
+    return(GenomicRanges::start(
+        GenomicRanges::resize(input_gr, width = 1, fix = "end")
+    ))
+}
+
 #' Extract last exons
 #'
 #' A function that from a GRanges from gtf
@@ -15,23 +27,19 @@ extract_last_exon <- function(
     # I only work with exons
     exons_gr <- base::subset(input_gr, type == "exon")
     # I split by groupping_variable
+    exons_gr_group <- GenomicRanges::mcols(exons_gr)[, groupping_variable]
     exons_gr_split <-
         GenomicRanges::split(
             exons_gr,
-            GenomicRanges::mcols(exons_gr)[, groupping_variable]
+            exons_gr_group
         )
     # I get the three prime extremity
     group_range <- unlist(range(exons_gr_split))
-    group_extremity <- GenomicRanges::start(
-        GenomicRanges::resize(group_range, width = 1, fix = "end")
-    )
+    group_extremity <- three_prime_pos(group_range)
     names(group_extremity) <- names(group_range)
     indices_last_exons <- which(
-        GenomicRanges::start(
-            GenomicRanges::resize(exons_gr, width = 1, fix = "end")
-        ) ==
-            group_extremity[GenomicRanges::mcols(exons_gr)[,
-                                                           groupping_variable]]
+        three_prime_pos(exons_gr) ==
+            group_extremity[exons_gr_group]
     )
     # Return the corresponding GRanges object
     if (invert) {

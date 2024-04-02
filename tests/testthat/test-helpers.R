@@ -435,6 +435,11 @@ input_gr_case9_pot_extended <- GenomicRanges::GRanges(
     old_end = c(25, 70)
 )
 
+test_that("three_prime_pos works", {
+    expect_equal(three_prime_pos(input_gr),
+                 c(3, 13, 20, 30))
+})
+
 test_that("extract_last_exon works", {
     expect_equal(extract_last_exon(input_gr, "gene_id"), input_gr[2:3])
     expect_equal(extract_last_exon(input_gr, "transcript_id"), input_gr[1:3])
