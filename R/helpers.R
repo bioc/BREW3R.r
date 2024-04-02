@@ -10,6 +10,18 @@ three_prime_pos <- function(input_gr) {
     ))
 }
 
+#' Get five prime position
+#'
+#' A function that from a GRanges
+#' gives the 5' position
+#' @param input_gr A GRanges or GRangeList
+#' @return A vector of integers
+five_prime_pos <- function(input_gr) {
+    return(GenomicRanges::start(
+        GenomicRanges::resize(input_gr, width = 1, fix = "start")
+    ))
+}
+
 #' Extract last exons
 #'
 #' A function that from a GRanges from gtf
