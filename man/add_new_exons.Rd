@@ -4,16 +4,13 @@
 \alias{add_new_exons}
 \title{Add new exons}
 \usage{
-add_new_exons(input_gr_to_extend, input_gr_with_new_exons, verbose = 1)
+add_new_exons(input_gr_to_extend, input_gr_with_new_exons)
 }
 \arguments{
 \item{input_gr_to_extend}{A GRanges to be complemented}
 
 \item{input_gr_with_new_exons}{A GRanges with exons to be added
 to the first one (exons with strand '*' are excluded)}
-
-\item{verbose}{An integer that indicates the level of verbosity
-0 = silent, 1 = statistics, 2 = progression.}
 }
 \value{
 A GRanges identical to `input_gr_to_extend` with new exons

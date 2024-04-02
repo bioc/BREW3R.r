@@ -7,17 +7,17 @@
 adjust_for_collision(input_gr)
 }
 \arguments{
-\item{input_gr}{A GRanges with 2 metas: 'old_start' and 'old_end'}
+\item{input_gr}{A GRanges with 1 meta: 'old_width'}
 }
 \value{
 A list with:
-        - 'pot_issues': A dataframe with overlaps between `input_gr`
-                        and itself while gene_ids are different
+        - 'pot_issues': A dataframe with exons which overlaps between
+                       `input_gr` and itself while gene_ids are different
         - 'new_gr': A GRanges identical to `input_gr` except that start/end
                     have been adjusted to prevent collisions.
 }
 \description{
-A function that from a GRanges with 'old_start' and 'old_end'
+A function that from a GRanges with 'old_width'
 Change the starts and ends to prevent collisions larger than
 with old coordinates
 }

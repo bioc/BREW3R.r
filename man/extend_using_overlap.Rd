@@ -4,22 +4,19 @@
 \alias{extend_using_overlap}
 \title{Overlap exons and extend three prime end}
 \usage{
-extend_using_overlap(input_gr_to_extend, input_gr_to_overlap, verbose = 1)
+extend_using_overlap(input_gr_to_extend, input_gr_to_overlap)
 }
 \arguments{
 \item{input_gr_to_extend}{A GRanges with exons to extend
 (strand * are excluded)}
 
 \item{input_gr_to_overlap}{A GRanges with intervals to overlap}
-
-\item{verbose}{An integer that indicates the level of verbosity
-0 = silent, 1 = statistics, 2 = progression.}
 }
 \value{
 A GRanges which is a subset of `input_gr_to_extend` where
         3' end have been modified to match the 3' end of
         `input_gr_to_overlap` if they overlap
-        (initial start and end have been stored into old_start and old_end)
+        (initial width have been stored into old_width)
 }
 \description{
 A function that from 2 GRanges returns a subset of the first

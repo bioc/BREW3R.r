@@ -3,7 +3,9 @@
 #' A function that extend rlang::inform
 #' to display a message if the verbose is at "debug"
 #' and show content of the variable
-#' @return NULL
+#' @param message String to display
+#' @param ... Other parameters for rlang::inform
+#' @return Nothing
 debug_msg <- function(message = NULL, ...) {
     is_debug_mode <- (getOption("BREW3R.r.verbose", "quiet") == "debug")
     if (is_debug_mode) {
@@ -18,7 +20,8 @@ debug_msg <- function(message = NULL, ...) {
 #'
 #' A function that extend rlang::inform
 #' to display a message if the verbose is at "debug" or "progression"
-#' @return NULL
+#' @param ... Parameters for rlang::inform
+#' @return Nothing
 progression_msg <- function(...) {
     is_progression_or_debug_mode <-
         (getOption("BREW3R.r.verbose", "quiet") %in% c("debug", "progression"))

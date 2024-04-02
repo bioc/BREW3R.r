@@ -2,4 +2,3 @@
 
 export(extend_granges)
 importFrom(GenomicRanges,strand)
-importFrom(dplyr,"%>%")
