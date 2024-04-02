@@ -64,21 +64,21 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
     )
 
     if (extend_existing_exons) {
-        progression_msg("Extend last exons.\nGetting last exons.")
+        progression_msg("Extend last exons.\nGetting last exons.\n")
         # First get the last exons
         last_exons_gr <- extract_last_exon(input_gr_to_extend)
         rlang::inform(
             paste("Found", length(last_exons_gr),
-                  "last exons to potentially extend.")
+                  "last exons to potentially extend.\n")
         )
         debug_msg("last_exons_gr")
         # Then, these exons are extended ignoring potential collisions
         last_exons_gr_extended <-
             extend_using_overlap(last_exons_gr, input_gr_to_overlap)
         rlang::inform(
-            paste(length(last_exons_gr_extended), " exons may be extended.")
+            paste(length(last_exons_gr_extended), " exons may be extended.\n")
         )
-        progression_msg("Checking for collision with other genes.")
+        progression_msg("Checking for collision with other genes.\n")
         debug_msg("last_exons_gr_extended")
         # Prepare the non-extended exons:
         last_exons_gr_extended$id <-
@@ -129,7 +129,7 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         )
         rlang::inform(
             paste(sum(modified), "exons have been extended",
-                  "while preventing collision with other genes.")
+                  "while preventing collision with other genes.\n")
         )
         # We remove old_width
         extension_resolved_gr$old_width <- NULL
@@ -138,7 +138,7 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         extension_resolved_gr <- input_gr_to_extend
     }
     if (add_new_exons) {
-        progression_msg("Adding exons after existing ones.")
+        progression_msg("Adding exons after existing ones.\n")
         extension_resolved_gr_new_exons <-
             add_new_exons(extension_resolved_gr,
                           input_gr_to_overlap)
@@ -148,7 +148,7 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
                               extension_resolved_gr_new_exons$exon_id)) -
                       length(grep("BREW3R",
                                   extension_resolved_gr$exon_id)),
-                  " exons.")
+                  " exons.\n")
         )
     } else {
         extension_resolved_gr_new_exons <- extension_resolved_gr
