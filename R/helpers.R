@@ -73,10 +73,10 @@ extract_last_exon <- function(
 #' @return A GRanges which is a subset of `input_gr_to_extend` where
 #'         3' end have been modified to match the 3' end of
 #'         `input_gr_to_overlap` if they overlap
-#'         (initial start and end have been stored into old_start and old_end)
+#'         (initial width have been stored into old_width)
 #' @importFrom GenomicRanges strand
 extend_using_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
-                                  verbose = 1) {
+                                 verbose = 1) {
     # Remove strands which are not in + - and non exonic features
     input_gr_to_extend <- subset(
         input_gr_to_extend,
@@ -120,17 +120,17 @@ extend_using_overlap <- function(input_gr_to_extend, input_gr_to_overlap,
         input_gr_to_extend_intersect[potential_extention > 0]
     potential_extention_selected <-
         potential_extention[potential_extention > 0]
-    # Store old coordinates
-    input_gr_to_extend_intersect_selected$old_start <-
-        GenomicRanges::start(input_gr_to_extend_intersect_selected)
-    input_gr_to_extend_intersect_selected$old_end <-
-        GenomicRanges::end(input_gr_to_extend_intersect_selected)
+    # Store old width
+    input_gr_to_extend_intersect_selected$old_width <-
+        GenomicRanges::width(input_gr_to_extend_intersect_selected)
     # Extend
     input_gr_to_extend_intersect_selected_extended <-
-        GenomicRanges::resize(input_gr_to_extend_intersect_selected,
-               width =
-                   GenomicRanges::width(input_gr_to_extend_intersect_selected) +
-                   potential_extention_selected)
+        GenomicRanges::resize(
+            input_gr_to_extend_intersect_selected,
+            width =
+                input_gr_to_extend_intersect_selected$old_width +
+                potential_extention_selected
+        )
     return(input_gr_to_extend_intersect_selected_extended)
 }
 
@@ -156,259 +156,131 @@ overlap_different_genes <- function(gr1, gr2) {
 
 #' Adjust for collision
 #'
-#' A function that from a GRanges with 'old_start' and 'old_end'
+#' A function that from a GRanges with 'old_width'
 #' Change the starts and ends to prevent collisions larger than
 #' with old coordinates
-#' @param input_gr A GRanges with 2 metas: 'old_start' and 'old_end'
-#' @importFrom dplyr %>%
+#' @param input_gr A GRanges with 1 meta: 'old_width'
 #' @return A list with:
-#'         - 'pot_issues': A dataframe with overlaps between `input_gr`
-#'                         and itself while gene_ids are different
+#'         - 'pot_issues': A dataframe with exons which overlaps between
+#'                        `input_gr` and itself while gene_ids are different
 #'         - 'new_gr': A GRanges identical to `input_gr` except that start/end
 #'                     have been adjusted to prevent collisions.
 adjust_for_collision <- function(input_gr) {
     # Use an 'id':
     input_gr$id <- paste0(input_gr$exon_id, "_", input_gr$transcript_id)
     # Select entries which have been extended:
-    extended_gr <- subset(input_gr, old_start > start | old_end < end)
-    # Compute overlap between extended and full
-    # and get those from different gene_ids:
-    pot_issues <- overlap_different_genes(extended_gr, input_gr)
-
-    if (nrow(pot_issues) > 0) {
-        # Add annotations from Subject
-        pot_issues$subject_start <-
-            GenomicRanges::start(input_gr)[pot_issues$subjectHits]
-        pot_issues$subject_end <-
-            GenomicRanges::end(input_gr)[pot_issues$subjectHits]
-        pot_issues$subject_id <- input_gr$id[pot_issues$subjectHits]
-        # Add annotations from Query
-        pot_issues$query_old_start <-
-            extended_gr$old_start[pot_issues$queryHits]
-        pot_issues$query_old_end <-
-            extended_gr$old_end[pot_issues$queryHits]
-        # Summarize from tail-to-head collisions
-        pot_issues_summary <- pot_issues %>%
-            dplyr::group_by(queryHits) %>%
-            dplyr::summarise(
-                min_subject_start_collision =
-                    tryCatch(
-                        min(subject_start[query_old_end < subject_start]),
-                        warning = function(w) {
-                            NA
-                        }
-                    ),
-                max_subject_end_collision =
-                    tryCatch(
-                        max(subject_end[query_old_start > subject_end]),
-                        warning = function(w) {
-                            NA
-                        }
-                    )
-            )
-        # Add to the corresponding GRanges
-        pot_issues_df <-
-            as.data.frame(extended_gr[pot_issues_summary$queryHits])
-        pot_issues_df$queryHits <- pot_issues_summary$queryHits
-        pot_issues_df <- merge(pot_issues_df, pot_issues_summary)
-        # add fixed_start_collision and fixed_end_collision
-        # Which takes into account collision (tail-to-head) with another gene_id
-        pot_issues_df <- pot_issues_df %>%
-            dplyr::group_by(queryHits) %>%
-            dplyr::mutate(
-                fixed_start_collision = ifelse(
-                    strand == "+" |  is.na(max_subject_end_collision),
-                    start,
-                    max_subject_end_collision + 1
-                ),
-                fixed_end_collision = ifelse(
-                    strand == "+" & !is.na(min_subject_start_collision),
-                    min_subject_start_collision - 1,
-                    end
-                )
-            ) %>%
-            as.data.frame
-        # Apply these modifications to input_gr
-        new_start_values <- GenomicRanges::start(input_gr)
-        new_start_values[match(pot_issues_df$id, input_gr$id)] <-
-            pot_issues_df$fixed_start_collision
-        input_gr <- GenomicRanges::`start<-`(input_gr, value = new_start_values)
-        new_end_values <- GenomicRanges::end(input_gr)
-        new_end_values[match(pot_issues_df$id, input_gr$id)] <-
-            pot_issues_df$fixed_end_collision
-        input_gr <- GenomicRanges::`end<-`(input_gr, value = new_end_values)
-
-        # We need to recompute overlap
-        # We can restrict to exons with issues:
-        new_extended_gr <- subset(input_gr, old_start > start | old_end < end)
-        input_gr_to_check <- subset(
+    extended_gr <- subset(input_gr, old_width < width)
+    # Select only the extension
+    extension_gr <- GenomicRanges::resize(
+        extended_gr,
+        GenomicRanges::width(extended_gr) - extended_gr$old_width,
+        fix = "end"
+    )
+    # Select the first base of extension
+    first_base_extension_gr <-
+        GenomicRanges::resize(
+            extension_gr,
+            width = 1
+        )
+    # Generate the original input
+    original_gr <-
+        GenomicRanges::resize(
             input_gr,
-            id %in% c(new_extended_gr$id, pot_issues$subject_id)
+            width = input_gr$old_width
         )
 
-        new_pot_issues <- overlap_different_genes(
+    # Compute overlap between first base of extension and original
+    # and get those from different gene_ids:
+    pot_issues_first <- overlap_different_genes(first_base_extension_gr,
+                                                original_gr)
+    pot_issues_first$query_id <-
+        first_base_extension_gr[pot_issues_first$queryHits]$id
+    # These should not be extended
+    # Restore them
+    to_restore <- which(input_gr$id %in% pot_issues_first$query_id)
+    input_gr[to_restore] <-
+        original_gr[to_restore]
+    # Store this into a data frame
+    pot_issues_df <- as.data.frame(input_gr[to_restore])
+    if (nrow(pot_issues_df) > 0) {
+        pot_issues_df$issue <- "first_base_extension_overlaps_different_gene"
+        pot_issues_df$solution <- "no extension"
+        pot_issues_df$collision_base <- NA
+    }
+    # Select entries which have been extended:
+    extended_gr <- subset(input_gr, old_width < width)
+    # Select only the extension
+    extension_gr <- GenomicRanges::resize(
+        extended_gr,
+        GenomicRanges::width(extended_gr) - extended_gr$old_width,
+        fix = "end"
+    )
+    # To deal with tail-to-head extensions we
+    # compute overlap between extension and five prime of input_gr
+    # and get those from different gene_ids:
+    pot_issues <- overlap_different_genes(extension_gr,
+                                          GenomicRanges::resize(
+                                              input_gr,
+                                              width = 1
+                                          ))
+
+    if (nrow(pot_issues) > 0) {
+        overlapped_range <- unlist(range(
+            GenomicRanges::split(input_gr[pot_issues$subjectHits],
+                                 pot_issues$queryHits)
+        ))
+        # Generate a GRanges with issues:
+        extended_gr_issues <- extended_gr[as.numeric(names(overlapped_range))]
+        extended_gr_issues$collision_base <- five_prime_pos(overlapped_range)
+        # Compute the new_widths to avoid tail-to-head
+        new_widths <- abs(extended_gr_issues$collision_base -
+                              five_prime_pos(extended_gr_issues))
+        names(new_widths) <- extended_gr_issues$id
+        # Modify the input_gr
+        input_gr[match(names(new_widths), input_gr$id)] <-
+            GenomicRanges::resize(
+                input_gr[match(names(new_widths), input_gr$id)],
+                new_widths
+            )
+        # Store solving into a data.frame
+        pot_issues_df_temp <- as.data.frame(extended_gr_issues)
+            pot_issues_df_temp$issue <- "tail_to_head_collision"
+            pot_issues_df_temp$solution <- "smaller extension"
+            pot_issues_df <- rbind(pot_issues_df, pot_issues_df_temp)
+        }
+    # Now we compute overlap between extension and input_gr
+        # We can restrict to exons with issues:
+        new_extended_gr <- subset(input_gr, old_width < width)
+        # Select only the extension
+        new_extension_gr <- GenomicRanges::resize(
             new_extended_gr,
-            input_gr_to_check
+            GenomicRanges::width(new_extended_gr) - new_extended_gr$old_width,
+            fix = "end"
+        )
+        new_pot_issues <- overlap_different_genes(
+            new_extension_gr,
+        input_gr
         )
 
         if (nrow(new_pot_issues) > 0) {
-            # Annotate new_pot_issues with query:
-            new_extended_gr$queryHits <- seq_along(new_extended_gr)
-            new_pot_issues <- merge(new_pot_issues,
-                                    as.data.frame(new_extended_gr))
-
-            new_pot_issues$extension_width <- with(
-                new_pot_issues,
-                old_start - start + end - old_end
-            )
-            new_pot_issues$query_extension_limit <- with(
-                new_pot_issues,
-                ifelse(
-                    strand == "+",
-                    end,
-                    start
-                )
-            )
-            # Annotate new_pot_issues with subject:
-            new_pot_issues$subject_extension_limit <- ifelse(
-                new_pot_issues$strand == "+",
-                GenomicRanges::end(input_gr_to_check)[new_pot_issues$subjectHits],
-                GenomicRanges::start(input_gr_to_check)[new_pot_issues$subjectHits]
-            )
-            new_pot_issues$subject_id <-
-                input_gr_to_check$id[new_pot_issues$subjectHits]
-
-            # We should have now only genes that previously overlapped:
-            # And:
-            # - only one has been extended:
-            # old:
-            # ---------------------->
-            #     ---->
-            # new:
-            # ---------------------->
-            #     --------->
-            # or
-            # old:
-            # ---------------------->
-            #     ---->
-            # new:
-            # ---------------------->
-            #     ------------------>
-            # or
-            # old:
-            # ---------/     \------------->
-            #     ---->
-            # new:
-            # ---------/     \------------->
-            #     --------->
-            # or
-            # old:
-            # ---------/     \------------->
-            #     -->
-            # new:
-            # ---------/     \------------->
-            #     --------->
-            # - are both extended up to the same base,
-            #   only one should be extended:
-            # Like
-            # ------------------->
-            # ------>
-            # or
-            #    ---------------->
-            # ------>
-            # or
-            # ------------------->
-            #   ---->
-
-            # Set a variable for both cases:
-            new_pot_issues$keep <- FALSE
-            # Deal with case 1:
-            new_pot_issues_case1 <- subset(
-                new_pot_issues,
-                !subject_id %in% new_pot_issues$id
-            )
-            if (nrow(new_pot_issues_case1) > 0) {
-                new_pot_issues_case1$subject_start <-
-                    GenomicRanges::start(input_gr_to_check)[new_pot_issues_case1$subjectHits]
-                new_pot_issues_case1$subject_end <-
-                    GenomicRanges::end(input_gr_to_check)[new_pot_issues_case1$subjectHits]
-
-                # Cases where extended part overlap subject
-                # should not be extended
-                new_pot_issues_case1 <- new_pot_issues_case1 %>%
-                    dplyr::mutate(
-                        case = "case1",
-                        keep = ifelse(
-                            strand == "+",
-                            old_end == subject_end,
-                            old_start == subject_start
-                        )
-                    )
-            }
-            # Deal with case 2:
-            new_pot_issues_case2 <- subset(
-                new_pot_issues,
-                subject_id %in% new_pot_issues$id
-            )
-            if (nrow(new_pot_issues_case2) > 0) {
-                # Then only the gene_id
-                # with the smallest extension_width will be extended.
-                # The others will be put back to before extension
-                new_pot_issues_case2 <- new_pot_issues_case2 %>%
-                    dplyr::group_by(strand, query_extension_limit) %>%
-                    dplyr::mutate(
-                        case = "case2",
-                        min_extension = min(extension_width),
-                        keep = query_gene_id %in%
-                            query_gene_id[extension_width == min_extension]
-                    ) %>%
-                    dplyr::ungroup()
-            }
-
-            new_pot_issues_summary <- rbind(
-                new_pot_issues_case1 %>%
-                    dplyr::select(id, strand, keep,
-                                  start, old_start, end, old_end),
-                new_pot_issues_case2 %>%
-                    dplyr::select(id, strand, keep,
-                                  start, old_start, end, old_end)
-            ) %>%
-                dplyr::mutate(
-                    fixed_start_same_extension = ifelse(
-                        strand == "+" | keep,
-                        start,
-                        old_start
-                    ),
-                    fixed_end_same_extension = ifelse(
-                        strand == "+" & !keep,
-                        old_end,
-                        end
-                    )
-                ) %>%
-                dplyr::group_by(id) %>%
-                dplyr::summarise(
-                    max_fixed_start_same_extension = max(fixed_start_same_extension),
-                    min_fixed_end_same_extension = min(fixed_end_same_extension)
-                ) %>%
-                as.data.frame()
-
-            # Apply these modifications to input_gr
-            new_start_values <- GenomicRanges::start(input_gr)
-            new_start_values[match(new_pot_issues_summary$id, input_gr$id)] <-
-                new_pot_issues_summary$max_fixed_start_same_extension
-            input_gr <-
-                GenomicRanges::`start<-`(input_gr, value = new_start_values)
-            new_end_values <- GenomicRanges::end(input_gr)
-            new_end_values[match(new_pot_issues_summary$id, input_gr$id)] <-
-                new_pot_issues_summary$min_fixed_end_same_extension
-            input_gr <- GenomicRanges::`end<-`(input_gr, value = new_end_values)
-
-            # Combine both pot_issues
-            pot_issues_df <- merge(pot_issues_df, new_pot_issues_summary)
-        }
-
-    } else {
-        pot_issues_df <- data.frame()
+            # The only case that is remaining:
+            # old
+            # ----->
+            #  ---->
+            # new
+            # ------------->
+            #  ------------>
+            new_pot_issues$query_id <-
+                new_extension_gr$id[new_pot_issues$queryHits]
+            to_restore <- which(input_gr$id %in% new_pot_issues$query_id)
+            input_gr[to_restore] <-
+                original_gr[to_restore]
+            pot_issues_df_temp <-
+                as.data.frame(new_extension_gr[new_pot_issues$queryHits])
+                pot_issues_df_temp$issue <- "both_equal_extension"
+                pot_issues_df_temp$solution <- "no extension"
+                pot_issues_df_temp$collision_base <- NA
+            pot_issues_df <- rbind(pot_issues_df, pot_issues_df_temp)
     }
     # Remove the id:
     input_gr$id <- NULL

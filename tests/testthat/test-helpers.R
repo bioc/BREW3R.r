@@ -29,8 +29,7 @@ small_gr_pot_extended <- GenomicRanges::GRanges(
     gene_id = c("gene1", "gene2"),
     transcript_id = c("transcript2", "transcript3"),
     type = "exon",
-    old_start = c(10, 30),
-    old_end = c(13, 33)
+    old_width = c(4, 4)
 )
 # Case1:
 # input_gene1:      ------->
@@ -206,8 +205,7 @@ input_gr_case1_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 20),
-    old_end = c(10, 30)
+    old_width = c(6, 11)
 )
 
 input_gr_case1_extended_fixed <- GenomicRanges::GRanges(
@@ -219,8 +217,7 @@ input_gr_case1_extended_fixed <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 20),
-    old_end = c(10, 30)
+    old_width = c(6, 11)
 )
 
 input_gr_case2_pot_extended <- GenomicRanges::GRanges(
@@ -232,8 +229,7 @@ input_gr_case2_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 20),
-    old_end = c(10, 25)
+    old_width = c(6, 6)
 )
 
 input_gr_case2_extended_fixed <- GenomicRanges::GRanges(
@@ -245,8 +241,7 @@ input_gr_case2_extended_fixed <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 20),
-    old_end = c(10, 25)
+    old_width = c(6, 6)
 )
 
 input_gr_case3_pot_extended <- GenomicRanges::GRanges(
@@ -258,8 +253,7 @@ input_gr_case3_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 20),
-    old_end = c(10, 22)
+    old_width = c(6, 3)
 )
 
 input_gr_case3_extended_fixed <- GenomicRanges::GRanges(
@@ -271,8 +265,7 @@ input_gr_case3_extended_fixed <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 20),
-    old_end = c(10, 22)
+    old_width = c(6, 3)
 )
 
 input_gr_case4_pot_extended <- GenomicRanges::GRanges(
@@ -284,8 +277,7 @@ input_gr_case4_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 5),
-    old_end = c(10, 22)
+    old_width = c(6, 18)
 )
 
 input_gr_case4_extended_fixed <- GenomicRanges::GRanges(
@@ -297,8 +289,7 @@ input_gr_case4_extended_fixed <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 5),
-    old_end = c(10, 22)
+    old_width = c(6, 18)
 )
 
 input_gr_case4bis_pot_extended <- GenomicRanges::GRanges(
@@ -310,8 +301,7 @@ input_gr_case4bis_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 5),
-    old_end = c(10, 25)
+    old_width = c(6, 21)
 )
 
 input_gr_case4bis_extended_fixed <- GenomicRanges::GRanges(
@@ -323,8 +313,7 @@ input_gr_case4bis_extended_fixed <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 5),
-    old_end = c(10, 25)
+    old_width = c(6, 21)
 )
 
 input_gr_case5_pot_extended <- GenomicRanges::GRanges(
@@ -336,8 +325,7 @@ input_gr_case5_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 20),
-    old_end = c(10, 22)
+    old_width = c(6, 3)
 )
 
 input_gr_case5_extended_fixed <- GenomicRanges::GRanges(
@@ -349,8 +337,7 @@ input_gr_case5_extended_fixed <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 20),
-    old_end = c(10, 22)
+    old_width = c(6, 3)
 )
 
 input_gr_case6_pot_extended <- GenomicRanges::GRanges(
@@ -362,8 +349,7 @@ input_gr_case6_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon1", "exon2"),
-    old_start = c(1, 1, 30),
-    old_end = c(10, 10, 40)
+    old_width = c(10, 10, 11)
 )
 
 input_gr_case6bis_pot_extended <- GenomicRanges::GRanges(
@@ -375,8 +361,7 @@ input_gr_case6bis_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2", "exon3"),
-    old_start = c(1, 1, 30),
-    old_end = c(10, 10, 40)
+    old_width = c(10, 10, 11)
 )
 
 input_gr_case7_pot_extended <- GenomicRanges::GRanges(
@@ -388,8 +373,7 @@ input_gr_case7_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2", "exon3"),
-    old_start = c(1, 1, 30),
-    old_end = c(8, 10, 40)
+    old_width = c(8, 10, 11)
 )
 
 input_gr_case8_pot_extended <- GenomicRanges::GRanges(
@@ -403,8 +387,7 @@ input_gr_case8_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon1", "exon2"),
-    old_start = c(1, 1, 30),
-    old_end = c(8, 10, 40)
+    old_width = c(8, 10, 11)
 )
 
 input_gr_case8_extended_fixed <- GenomicRanges::GRanges(
@@ -418,8 +401,7 @@ input_gr_case8_extended_fixed <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon1", "exon2"),
-    old_start = c(1, 1, 30),
-    old_end = c(8, 10, 40)
+    old_width = c(8, 10, 11)
 )
 
 input_gr_case9_pot_extended <- GenomicRanges::GRanges(
@@ -431,8 +413,7 @@ input_gr_case9_pot_extended <- GenomicRanges::GRanges(
     transcript_id = c("transcript1", "transcript2"),
     type = "exon",
     exon_id = c("exon1", "exon2"),
-    old_start = c(5, 55),
-    old_end = c(25, 70)
+    old_width = c(21, 16)
 )
 
 test_that("three_prime_pos works", {
@@ -462,12 +443,14 @@ test_that("extend_using_overlap works", {
 })
 
 test_that("adjust_for_collision works on no issue", {
+    res <- adjust_for_collision(small_gr_pot_extended)
     expect_equal(
-        adjust_for_collision(small_gr_pot_extended),
-        list(
-            pot_issues = data.frame(),
-            new_gr = small_gr_pot_extended
-        )
+        nrow(res$pot_issues),
+        0
+    )
+    expect_equal(
+        res$new_gr,
+        small_gr_pot_extended
     )
 })
 
@@ -477,7 +460,7 @@ test_that("case1 works", {
                                   input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case1_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -492,7 +475,7 @@ test_that("case2 works", {
                                   input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case2_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -507,7 +490,7 @@ test_that("case3 works", {
                                   input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case3_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -522,7 +505,7 @@ test_that("case4 works", {
                                   input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case4_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -538,7 +521,7 @@ test_that("case4bis works", {
                                   input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case4bis_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -553,7 +536,7 @@ test_that("case5 works", {
                                   input_to_overlap_case5_9),
         subset(
             input_gr_case5_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -568,7 +551,7 @@ test_that("case6 works", {
                                   input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case6_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -583,7 +566,7 @@ test_that("case6bis works", {
                                   input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case6bis_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -604,7 +587,7 @@ test_that("case7 works", {
                                   input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case7_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -619,7 +602,7 @@ test_that("case8 works", {
                                   input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case8_pot_extended,
-            old_start != start | old_end != end
+            old_width != width
         )
     )
     expect_equal(
@@ -645,8 +628,7 @@ test_that("add_new_exons works on case 5", {
             type = "exon",
             exon_id = c("exon1", "exon2", "BREW3R0000000001",
                         "BREW3R0000000002", "BREW3R0000000003"),
-            old_start = c(5, 20, NA, NA, NA),
-            old_end = c(10, 22, NA, NA, NA),
+            old_width = c(6, 3, NA, NA, NA),
             exon_number = c(1, 1:4)
         )
     )
@@ -669,8 +651,7 @@ test_that("add_new_exons works on case 9", {
             type = "exon",
             exon_id = c("exon1", "BREW3R0000000001", "BREW3R0000000002",
                         "exon2"),
-            old_start = c(5, NA, NA, 55),
-            old_end = c(25, NA, NA, 70),
+            old_width = c(21, NA, NA, 16),
             exon_number = c(1:3, 1)
         )
     )

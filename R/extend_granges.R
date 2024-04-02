@@ -110,10 +110,8 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         last_exons_gr_extended$id <- NULL
         non_last_exons_extended_gr$id <- NULL
         # Add needed metadata:
-        non_last_exons_extended_gr$old_start <-
-            GenomicRanges::start(non_last_exons_extended_gr)
-        non_last_exons_extended_gr$old_end <-
-            GenomicRanges::end(non_last_exons_extended_gr)
+        non_last_exons_extended_gr$old_width <-
+            GenomicRanges::width(non_last_exons_extended_gr)
         if (debug) {
             message("non_last_exons_extended_gr")
             methods::show(non_last_exons_extended_gr)
@@ -148,8 +146,8 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         }
         # exon_id of exons changed by BREW3R are modified
         modified <-
-            GenomicRanges::start(extension_resolved_gr) != extension_resolved_gr$old_start |
-            GenomicRanges::end(extension_resolved_gr) != extension_resolved_gr$old_end
+            GenomicRanges::width(extension_resolved_gr) !=
+            extension_resolved_gr$old_width
         extension_resolved_gr$exon_id[modified] <- paste0(
             extension_resolved_gr$exon_id[modified],
             ".ext"
@@ -158,9 +156,8 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
             message(sum(modified), " exons have been extended",
                     " while preventing collision with other genes.")
         }
-        # We remove old_start and old_end
-        extension_resolved_gr$old_start <- NULL
-        extension_resolved_gr$old_end <- NULL
+        # We remove old_width
+        extension_resolved_gr$old_width <- NULL
         if (debug) {
             message("extension_resolved_gr")
             methods::show(extension_resolved_gr)
