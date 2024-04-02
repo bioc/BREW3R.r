@@ -114,7 +114,10 @@ new_gr_exons <- extend_granges(
 )
 ```
 
-By default, `verbose` is set to 1 so you get few statistics.
+By default, you get few statistics. You can change the verbosity with
+`options(rlib_message_verbosity = "quiet")` to mute it or on the contrary
+you can set `options(BREW3R.r.verbose = "progression")` to get messages with
+all steps.
 Among them, you can read that you extended about half of last exons,
 then you could add 29 exons to 26 transcripts.
 
