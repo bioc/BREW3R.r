@@ -125,7 +125,7 @@ then you could add 29 exons to 26 transcripts.
 
 Here is an example for the Btrc gene that have been extended:
 
-```{r plot Cntf, echo=FALSE}
+```{r plot Btrc, echo=FALSE}
 my_gene_name <- "Btrc"
 gene_before <- subset(
   input_gr_to_extend,
@@ -173,7 +173,7 @@ arrows(
 
 Here is an example for the Mrpl21 gene that have a new exon on the 3' end of one of its transcript:
 
-```{r plot Spindoc, echo=FALSE}
+```{r plot Mrpl21, echo=FALSE}
 my_gene_name <- "Mrpl21"
 my_transcript <- "ENSMUST00000155870.1"
 gene_before <- subset(
