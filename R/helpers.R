@@ -456,7 +456,8 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
     input_gr_with_new_exons_subset_split <-
         GenomicRanges::split(input_gr_with_new_exons_subset,
                              input_gr_with_new_exons_subset$transcript_id)
-    nb_exons_per_transcript <- table(input_gr_with_new_exons_subset$transcript_id)
+    nb_exons_per_transcript <-
+        table(input_gr_with_new_exons_subset$transcript_id)
     all_pot_exons <-
         unlist(
             input_gr_with_new_exons_subset_split[ov_df$subject_transcript_id]
@@ -528,7 +529,9 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
             mcols_input[,
                         c(grep("^source$", colnames(mcols_input), value = TRUE),
                           grep("^gene_", colnames(mcols_input), value = TRUE),
-                          grep("^transcript_", colnames(mcols_input), value = TRUE))]
+                          grep("^transcript_", colnames(mcols_input),
+                               value = TRUE))
+                        ]
         )
 
     GenomicRanges::mcols(all_exons_to_add_gr) <-
@@ -569,7 +572,8 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
     # 1. from 5p to 3p (I call it transcript)
     # 2. from start to end whatever the strand is (I call it coordinate)
     # To get the mode I select a second exon with strand -
-    if (!"exon_number" %in% colnames(GenomicRanges::mcols(input_gr_to_extend))) {
+    if (!"exon_number" %in%
+        colnames(GenomicRanges::mcols(input_gr_to_extend))) {
         my_mode <- "transcript"
         gr_to_annotate <- suppressWarnings(
             c(all_exons_to_add_gr, input_gr_to_extend)
@@ -625,7 +629,8 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
     }
     exons_per_transcript <- table(gr_to_annotate$transcript_id)
     exon_numbers_list <- lapply(exons_per_transcript, seq_len)
-    exon_numbers <- unlist(exon_numbers_list[unique(gr_to_annotate$transcript_id)])
+    exon_numbers <-
+        unlist(exon_numbers_list[unique(gr_to_annotate$transcript_id)])
     gr_to_annotate$exon_number <- unname(exon_numbers)
     new_gr <- c(gr_to_annotate, gr_to_add)
 
