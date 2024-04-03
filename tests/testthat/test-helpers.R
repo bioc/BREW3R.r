@@ -612,6 +612,37 @@ test_that("case8 works", {
     )
 })
 
+test_that("filter_new_exons works on case 5_9", {
+    res <- GenomicRanges::GRanges(
+        seqnames = "chr1",
+        ranges = IRanges::IRanges(start = c(1, 33, 45),
+                                  end = c(25, 40, 49)),
+        strand = "+",
+        gene_id = "geneA",
+        transcript_id = "transcriptA",
+        type = "exon",
+        exon_id = c("exonA", "exonB", "exonC"),
+        collision_base = c(50, 50, 50)
+    )
+    names(res$collision_base) <- c("transcriptA", "transcriptA", "transcriptA")
+    expect_equal(
+        filter_new_exons(
+            input_to_overlap_case5_9,
+            GenomicRanges::GRanges(
+                seqnames = "chr1",
+                ranges = IRanges::IRanges(start = c(50),
+                                          end = c(75)),
+                strand = "+",
+                gene_id = "gene1",
+                transcript_id = "transcript1",
+                type = "exon",
+                exon_id = c("exon1")
+            )
+        ),
+        res
+    )
+})
+
 test_that("add_new_exons works on case 5", {
     expect_equal(
         add_new_exons(

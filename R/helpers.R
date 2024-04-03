@@ -283,6 +283,89 @@ adjust_for_collision <- function(input_gr) {
                 new_gr = input_gr))
 }
 
+#' Filter new exons for collision
+#'
+#' A function that from 2 GRanges filter exons from the first one
+#' so they do not go three prime to the first collision with the second one.
+#' @param all_exons_interesting A GRanges with exons to trim and filter
+#' @param input_gr_to_extend A GRanges to overlap
+#' @return A GRanges subset of `all_exons_interesting`
+filter_new_exons <- function(all_exons_interesting, input_gr_to_extend) {
+    progression_msg(
+        "Check added exons which would overlap existing annotations.\n"
+    )
+    # Check that the new exons do not overlap existing annotations
+    # ov_new_exons is the overlap between:
+    # queries = all_exons_interesting
+    # subjects = input_gr_to_extend
+    # We arbitrarily decide to not include new exons if they overlap with any
+    # existing exons (including those with the same gene_id).
+    ov_new_exons <- suppressWarnings(GenomicRanges::findOverlaps(
+        all_exons_interesting,
+        input_gr_to_extend
+    ))
+
+    input_gr_to_extend_intersected <-
+        input_gr_to_extend[S4Vectors::subjectHits(ov_new_exons)]
+
+    # Get the five prime end of the intersected by new transcript_id
+    input_gr_to_extend_intersected_range <-
+        unlist(range(
+            GenomicRanges::split(
+                input_gr_to_extend_intersected,
+                all_exons_interesting$transcript_id[
+                    S4Vectors::queryHits(ov_new_exons)
+                ]
+            )
+        ))
+    collision_base_per_transcript <- five_prime_pos(
+        input_gr_to_extend_intersected_range
+    )
+    names(collision_base_per_transcript) <-
+        names(input_gr_to_extend_intersected_range)
+    all_exons_interesting$collision_base <-
+        collision_base_per_transcript[all_exons_interesting$transcript_id]
+    progression_msg("Remove new candidate exons",
+                    " three prime of overlap with existing annotations.\n")
+    # Filter exons after collision:
+    all_exons_interesting <-
+        subset(all_exons_interesting,
+               is.na(collision_base) |
+                   (strand == "+" & start < collision_base) |
+                   (strand == "-" & end > collision_base)
+        )
+    rlang::inform(
+        paste("Stay", length(unique(all_exons_interesting$id)), "candidate",
+              "exons that may be included into",
+              length(unique(all_exons_interesting$transcript_id)),
+              "transcripts.\n")
+    )
+    progression_msg(
+        paste("Adjust start/end of candidate exons to not",
+              "overlap with existing annotations.\n")
+    )
+
+    if (length(all_exons_interesting) == 0) {
+        return()
+    }
+
+    to_adjust <- which(!is.na(all_exons_interesting$collision_base) &
+                           (GenomicRanges::start(all_exons_interesting) <=
+                                all_exons_interesting$collision_base) &
+                           (GenomicRanges::end(all_exons_interesting) >=
+                                all_exons_interesting$collision_base))
+
+    # Compute the new_widths to avoid tail-to-head
+    new_widths <- abs(all_exons_interesting[to_adjust]$collision_base -
+                          five_prime_pos(all_exons_interesting[to_adjust]))
+    # Apply to all_exons_interesting
+    all_exons_interesting[to_adjust] <- GenomicRanges::resize(
+        all_exons_interesting[to_adjust],
+        new_widths
+    )
+    return(all_exons_interesting)
+}
+
 #' Add new exons
 #'
 #' A function that from 2 GRanges add exons from the second one
@@ -397,81 +480,15 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
               length(unique(all_exons_interesting$queryHits)),
               "transcripts.\n")
     )
-    progression_msg(
-        "Check added exons which would overlap existing annotations.\n"
-    )
-    # Check that the new exons do not overlap existing annotations
-    # ov_new_exons is the overlap between:
-    # queries = all_exons_interesting
-    # subjects = input_gr_to_extend
-    # We arbitrarily decide to not include new exons if they overlap with any
-    # existing exons (including those with the same gene_id).
-    ov_new_exons <- suppressWarnings(GenomicRanges::findOverlaps(
-        all_exons_interesting,
-        input_gr_to_extend
-    ))
-
-    input_gr_to_extend_intersected <-
-        input_gr_to_extend[S4Vectors::subjectHits(ov_new_exons)]
-
-    # Get the five prime end of the intersected by new transcript_id
+    # Attribute the new transcript_id to new exons
     all_exons_interesting$transcript_id <-
         last_base_input_gr_last[all_exons_interesting$queryHits]$transcript_id
-
-    input_gr_to_extend_intersected_range <-
-        unlist(range(
-            GenomicRanges::split(
-                input_gr_to_extend_intersected,
-                all_exons_interesting$transcript_id[
-                    S4Vectors::queryHits(ov_new_exons)
-                ]
-            )
-        ))
-    collision_base_per_transcript <- five_prime_pos(
-        input_gr_to_extend_intersected_range
-    )
-    names(collision_base_per_transcript) <-
-        names(input_gr_to_extend_intersected_range)
-    all_exons_interesting$collision_base <-
-        collision_base_per_transcript[all_exons_interesting$transcript_id]
-    progression_msg("Remove new candidate exons",
-                    " three prime of overlap with existing annotations.\n")
-    # Filter exons after collision:
+    # Filter
     all_exons_interesting <-
-        subset(all_exons_interesting,
-               is.na(collision_base) |
-                   (strand == "+" & start < collision_base) |
-                   (strand == "-" & end > collision_base)
-        )
-    rlang::inform(
-        paste("Stay", length(unique(all_exons_interesting$id)), "candidate",
-              "exons that may be included into",
-              length(unique(all_exons_interesting$queryHits)),
-              "transcripts.\n")
-    )
-    progression_msg(
-        paste("Adjust start/end of candidate exons to not",
-              "overlap with existing annotations.\n")
-    )
-
-    if (length(all_exons_interesting) == 0) {
+        filter_new_exons(all_exons_interesting, input_gr_to_extend)
+    if (is.null(all_exons_interesting)) {
         return(input_gr_to_extend)
     }
-
-    to_adjust <- which(!is.na(all_exons_interesting$collision_base) &
-                           (GenomicRanges::start(all_exons_interesting) <=
-                                all_exons_interesting$collision_base) &
-                           (GenomicRanges::end(all_exons_interesting) >=
-                                all_exons_interesting$collision_base))
-
-    # Compute the new_widths to avoid tail-to-head
-    new_widths <- abs(all_exons_interesting[to_adjust]$collision_base -
-                          five_prime_pos(all_exons_interesting[to_adjust]))
-    # Apply to all_exons_interesting
-    all_exons_interesting[to_adjust] <- GenomicRanges::resize(
-        all_exons_interesting[to_adjust],
-        new_widths
-    )
     # Here I do something which is not ideal:
     # If multiple transcripts could contribute to extension
     # they will be merged into a single one:
