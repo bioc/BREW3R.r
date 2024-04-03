@@ -458,7 +458,7 @@ test_that("adjust_for_collision works on no issue", {
 test_that("case1 works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case1),
-                                  input_to_overlap_case1_2_3_4_6_7_8),
+                             input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case1_pot_extended,
             old_width != width
@@ -473,7 +473,7 @@ test_that("case1 works", {
 test_that("case2 works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case2),
-                                  input_to_overlap_case1_2_3_4_6_7_8),
+                             input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case2_pot_extended,
             old_width != width
@@ -488,7 +488,7 @@ test_that("case2 works", {
 test_that("case3 works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case3_5),
-                                  input_to_overlap_case1_2_3_4_6_7_8),
+                             input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case3_pot_extended,
             old_width != width
@@ -503,7 +503,7 @@ test_that("case3 works", {
 test_that("case4 works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case4),
-                                  input_to_overlap_case1_2_3_4_6_7_8),
+                             input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case4_pot_extended,
             old_width != width
@@ -519,7 +519,7 @@ test_that("case4 works", {
 test_that("case4bis works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case4bis),
-                                  input_to_overlap_case1_2_3_4_6_7_8),
+                             input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case4bis_pot_extended,
             old_width != width
@@ -534,7 +534,7 @@ test_that("case4bis works", {
 test_that("case5 works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case3_5),
-                                  input_to_overlap_case5_9),
+                             input_to_overlap_case5_9),
         subset(
             input_gr_case5_pot_extended,
             old_width != width
@@ -549,7 +549,7 @@ test_that("case5 works", {
 test_that("case6 works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case6),
-                                  input_to_overlap_case1_2_3_4_6_7_8),
+                             input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case6_pot_extended,
             old_width != width
@@ -564,7 +564,7 @@ test_that("case6 works", {
 test_that("case6bis works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case6bis),
-                                  input_to_overlap_case1_2_3_4_6_7_8),
+                             input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case6bis_pot_extended,
             old_width != width
@@ -577,7 +577,7 @@ test_that("case6bis works", {
     expect_equal(
         sort(adjust_for_collision(
             input_gr_case6bis_pot_extended[c(2,1,3)]
-            )[["new_gr"]]),
+        )[["new_gr"]]),
         sort(input_gr_case6bis_pot_extended)
     )
 })
@@ -585,7 +585,7 @@ test_that("case6bis works", {
 test_that("case7 works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case7),
-                                  input_to_overlap_case1_2_3_4_6_7_8),
+                             input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case7_pot_extended,
             old_width != width
@@ -600,7 +600,7 @@ test_that("case7 works", {
 test_that("case8 works", {
     expect_equal(
         extend_using_overlap(extract_last_exon(input_gr_case8),
-                                  input_to_overlap_case1_2_3_4_6_7_8),
+                             input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case8_pot_extended,
             old_width != width
@@ -648,7 +648,7 @@ test_that("add_new_exons works on case 5", {
         add_new_exons(
             input_gr_case5_extended_fixed,
             input_to_overlap_case5_9
-            ),
+        ),
         GenomicRanges::GRanges(
             seqnames = "chr1",
             ranges = IRanges::IRanges(start = c(5, 20, 33, 45, 72),

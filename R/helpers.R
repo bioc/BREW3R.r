@@ -531,7 +531,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
                           grep("^gene_", colnames(mcols_input), value = TRUE),
                           grep("^transcript_", colnames(mcols_input),
                                value = TRUE))
-                        ]
+            ]
         )
 
     GenomicRanges::mcols(all_exons_to_add_gr) <-
