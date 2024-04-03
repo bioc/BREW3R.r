@@ -309,8 +309,6 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
     )
     # Add an id:
     input_gr_with_new_exons$id <- seq_along(input_gr_with_new_exons)
-    input_gr_to_extend$id <- paste0(input_gr_to_extend$exon_id, "_",
-                                    input_gr_to_extend$transcript_id)
     progression_msg("Extract last exon of first GRanges.\n")
     # Get the last exons of input_gr_to_extend
     input_gr_last <- extract_last_exon(input_gr_to_extend)
@@ -330,7 +328,6 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
     ))
     ov_df <- as.data.frame(ov)
     if (nrow(ov_df) == 0) {
-        input_gr_to_extend$id <- NULL
         return(input_gr_to_extend)
     }
     progression_msg("Only keep those with exons to be added.\n")
@@ -362,7 +359,6 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
             )
     )
     if (nrow(ov_df) == 0) {
-        input_gr_to_extend$id <- NULL
         return(input_gr_to_extend)
     }
     progression_msg("Attribute exons to be added to the good transcript.\n")
@@ -459,7 +455,6 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
     )
 
     if (length(all_exons_interesting) == 0) {
-        input_gr_to_extend$id <- NULL
         return(input_gr_to_extend)
     }
 
@@ -616,8 +611,6 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
     exon_numbers <- unlist(exon_numbers_list[unique(gr_to_annotate$transcript_id)])
     gr_to_annotate$exon_number <- unname(exon_numbers)
     new_gr <- c(gr_to_annotate, gr_to_add)
-    # Remove the id:
-    new_gr$id <- NULL
 
     return(new_gr)
 }
