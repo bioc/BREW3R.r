@@ -1,3 +1,4 @@
+options(rlib_message_verbosity = "quiet")
 
 input_to_overlap_case1_2_3_4_6_7_8 <- GenomicRanges::GRanges(
     seqnames = "chr1",
@@ -324,7 +325,9 @@ test_that("case8 works", {
 # input_gene2:                   --->
 # to_overlap:   ----/\--------/\---/  \---->
 
-test_that("case9 works", {
+test_that("case9 works with debug and overlapresolution", {
+    rlang::local_options(BREW3R.r.verbose = "debug")
+    overlap_resolution_fn <- tempfile()
     expect_equal(
         sort(extend_granges(
             GenomicRanges::GRanges(
@@ -337,7 +340,8 @@ test_that("case9 works", {
                 type = "exon",
                 exon_id = c("exon1", "exon2")
             ),
-            input_to_overlap_case5_9
+            input_to_overlap_case5_9,
+            overlap_resolution_fn = overlap_resolution_fn
         )),
         GenomicRanges::GRanges(
             seqnames = "chr1",

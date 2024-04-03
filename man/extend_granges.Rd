@@ -9,9 +9,7 @@ extend_granges(
   input_gr_to_overlap,
   extend_existing_exons = TRUE,
   add_new_exons = TRUE,
-  overlap_resolution_fn = NULL,
-  verbose = TRUE,
-  debug = FALSE
+  overlap_resolution_fn = NULL
 )
 }
 \arguments{
@@ -29,12 +27,6 @@ should be added}
 
 \item{overlap_resolution_fn}{A file path where the dataframe giving details
 on the collision resolution is written}
-
-\item{verbose}{A boolean that indicates if messages should appear to indicate
-progression and some statistics.}
-
-\item{debug}{A boolean that indicates if multiple intermediate results
-should be written to output during the process}
 }
 \value{
 A GRanges based on `input_gr_to_extend` where exons are extended

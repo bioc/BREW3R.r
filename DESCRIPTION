@@ -1,7 +1,7 @@
 Package: BREW3R.r
 Type: Package
 Title: R package associated to BREW3R
-Version: 0.99.0
+Version: 0.99.1
 Authors@R: 
     person(given = "Lucille",
            family = "Lopez-Delisle",
@@ -17,11 +17,10 @@ Encoding: UTF-8
 LazyData: false
 RoxygenNote: 7.3.1
 Imports:
-    dplyr,
     GenomicRanges,
     methods,
+    rlang,
     S4Vectors,
-    tidyselect,
     utils
 Suggests: 
     testthat (>= 3.0.0),
