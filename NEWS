@@ -1,3 +1,10 @@
+CHANGES IN VERSION 0.99.1
+-------------------------
+
+    o Internally, a lot of rewritting to remove dplyr usage.
+    o Use rlang to control verbosity
+    o Fix cases when 2 genes end at the same base before extension
+
 CHANGES IN VERSION 0.99.0
 -------------------------
 
