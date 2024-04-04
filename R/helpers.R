@@ -26,20 +26,20 @@ five_prime_pos <- function(input_gr) {
 #'
 #' A function that from a GRanges from gtf
 #' select only entries for the last exons
-#' If multiple exons overlap the last base of the groupping_variable,
+#' If multiple exons overlap the last base of the grouping_variable,
 #' they will all be reported.
 #' @param input_gr A GRanges from a gtf
-#' @param groupping_variable A string with the name of the metadata
+#' @param grouping_variable A string with the name of the metadata
 #'                           which should be used to group
 #' @param invert A boolean that indicates if you want all except the last exons
 #' @return A GRanges which contains a subset of `input_gr`
-extract_last_exon <- function(
-        input_gr, groupping_variable = "transcript_id", invert = FALSE
+extract_last_exons <- function(
+        input_gr, grouping_variable = "transcript_id", invert = FALSE
 ) {
     # I only work with exons
     exons_gr <- base::subset(input_gr, type == "exon")
-    # I split by groupping_variable
-    exons_gr_group <- GenomicRanges::mcols(exons_gr)[, groupping_variable]
+    # I split by grouping_variable
+    exons_gr_group <- GenomicRanges::mcols(exons_gr)[, grouping_variable]
     exons_gr_split <-
         GenomicRanges::split(
             exons_gr,
@@ -394,7 +394,7 @@ add_new_exons <- function(input_gr_to_extend, input_gr_with_new_exons) {
     input_gr_with_new_exons$id <- seq_along(input_gr_with_new_exons)
     progression_msg("Extract last exon of first GRanges.\n")
     # Get the last exons of input_gr_to_extend
-    input_gr_last <- extract_last_exon(input_gr_to_extend)
+    input_gr_last <- extract_last_exons(input_gr_to_extend)
     # First find exons which 'ends' at the same position
     progression_msg("Compute overlap with second GRanges.\n")
     last_base_input_gr_last <-

@@ -66,7 +66,7 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
     if (extend_existing_exons) {
         progression_msg("Extend last exons.\nGetting last exons.\n")
         # First get the last exons
-        last_exons_gr <- extract_last_exon(input_gr_to_extend)
+        last_exons_gr <- extract_last_exons(input_gr_to_extend)
         rlang::inform(
             paste("Found", length(last_exons_gr),
                   "last exons to potentially extend.\n")

@@ -427,12 +427,12 @@ test_that("five_prime_pos works", {
                  c(1, 10, 23, 33))
 })
 
-test_that("extract_last_exon works", {
-    expect_equal(extract_last_exon(input_gr, "gene_id"), input_gr[2:3])
-    expect_equal(extract_last_exon(input_gr, "transcript_id"), input_gr[1:3])
-    expect_equal(extract_last_exon(input_gr, "gene_id", invert = TRUE),
+test_that("extract_last_exons works", {
+    expect_equal(extract_last_exons(input_gr, "gene_id"), input_gr[2:3])
+    expect_equal(extract_last_exons(input_gr, "transcript_id"), input_gr[1:3])
+    expect_equal(extract_last_exons(input_gr, "gene_id", invert = TRUE),
                  input_gr[c(1, 4)])
-    expect_equal(extract_last_exon(input_gr, "transcript_id", invert  = TRUE),
+    expect_equal(extract_last_exons(input_gr, "transcript_id", invert  = TRUE),
                  input_gr[4])
 })
 
@@ -457,7 +457,7 @@ test_that("adjust_for_collision works on no issue", {
 
 test_that("case1 works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case1),
+        extend_using_overlap(extract_last_exons(input_gr_case1),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case1_pot_extended,
@@ -472,7 +472,7 @@ test_that("case1 works", {
 
 test_that("case2 works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case2),
+        extend_using_overlap(extract_last_exons(input_gr_case2),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case2_pot_extended,
@@ -487,7 +487,7 @@ test_that("case2 works", {
 
 test_that("case3 works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case3_5),
+        extend_using_overlap(extract_last_exons(input_gr_case3_5),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case3_pot_extended,
@@ -502,7 +502,7 @@ test_that("case3 works", {
 
 test_that("case4 works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case4),
+        extend_using_overlap(extract_last_exons(input_gr_case4),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case4_pot_extended,
@@ -518,7 +518,7 @@ test_that("case4 works", {
 
 test_that("case4bis works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case4bis),
+        extend_using_overlap(extract_last_exons(input_gr_case4bis),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case4bis_pot_extended,
@@ -533,7 +533,7 @@ test_that("case4bis works", {
 
 test_that("case5 works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case3_5),
+        extend_using_overlap(extract_last_exons(input_gr_case3_5),
                              input_to_overlap_case5_9),
         subset(
             input_gr_case5_pot_extended,
@@ -548,7 +548,7 @@ test_that("case5 works", {
 
 test_that("case6 works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case6),
+        extend_using_overlap(extract_last_exons(input_gr_case6),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case6_pot_extended,
@@ -563,7 +563,7 @@ test_that("case6 works", {
 
 test_that("case6bis works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case6bis),
+        extend_using_overlap(extract_last_exons(input_gr_case6bis),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case6bis_pot_extended,
@@ -584,7 +584,7 @@ test_that("case6bis works", {
 
 test_that("case7 works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case7),
+        extend_using_overlap(extract_last_exons(input_gr_case7),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case7_pot_extended,
@@ -599,7 +599,7 @@ test_that("case7 works", {
 
 test_that("case8 works", {
     expect_equal(
-        extend_using_overlap(extract_last_exon(input_gr_case8),
+        extend_using_overlap(extract_last_exons(input_gr_case8),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case8_pot_extended,
