@@ -31,8 +31,10 @@
 #'
 #' input_gr <- GenomicRanges::GRanges(
 #'     seqnames = "chr1",
-#'     ranges = IRanges::IRanges(start = c(5, 20),
-#'                               end = c(10, 30)),
+#'     ranges = IRanges::IRanges(
+#'         start = c(5, 20),
+#'         end = c(10, 30)
+#'     ),
 #'     strand = "+",
 #'     gene_id = c("gene1", "gene2"),
 #'     transcript_id = c("transcript1", "transcript2"),
@@ -42,8 +44,10 @@
 #'
 #' input_gr_to_overlap <- GenomicRanges::GRanges(
 #'     seqnames = "chr1",
-#'     ranges = IRanges::IRanges(start = 3,
-#'                               end = 15),
+#'     ranges = IRanges::IRanges(
+#'         start = 3,
+#'         end = 15
+#'     ),
 #'     strand = "+",
 #'     gene_id = "geneA",
 #'     transcript_id = "transcriptA",
@@ -59,8 +63,11 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
     # Apply the filters
     input_gr_to_extend <- subset(
         input_gr_to_extend,
-        type == "exon" &
-            as.character(strand(input_gr_to_extend)) != "*"
+        with(
+            input_gr_to_extend,
+            type == "exon" &
+                as.character(strand(input_gr_to_extend)) != "*"
+        )
     )
 
     if (extend_existing_exons) {
@@ -68,8 +75,10 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         # First get the last exons
         last_exons_gr <- extract_last_exons(input_gr_to_extend)
         rlang::inform(
-            paste("Found", length(last_exons_gr),
-                  "last exons to potentially extend.\n")
+            paste(
+                "Found", length(last_exons_gr),
+                "last exons to potentially extend.\n"
+            )
         )
         debug_msg("last_exons_gr")
         # Then, these exons are extended ignoring potential collisions
@@ -82,13 +91,17 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         debug_msg("last_exons_gr_extended")
         # Prepare the non-extended exons:
         last_exons_gr_extended$id <-
-            paste0(last_exons_gr_extended$transcript_id, "_",
-                   last_exons_gr_extended$exon_id)
-        input_gr_to_extend$id <- paste0(input_gr_to_extend$transcript_id, "_",
-                                        input_gr_to_extend$exon_id)
+            paste0(
+                last_exons_gr_extended$transcript_id, "_",
+                last_exons_gr_extended$exon_id
+            )
+        input_gr_to_extend$id <- paste0(
+            input_gr_to_extend$transcript_id, "_",
+            input_gr_to_extend$exon_id
+        )
         non_last_exons_extended_gr <- subset(
             input_gr_to_extend,
-            !id %in% last_exons_gr_extended$id
+            with(input_gr_to_extend, !id %in% last_exons_gr_extended$id)
         )
         # Remove the id:
         last_exons_gr_extended$id <- NULL
@@ -108,10 +121,11 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         if (!is.null(overlap_resolution_fn)) {
             tryCatch(
                 utils::write.table(extension_resolved[["pot_issues"]],
-                                   overlap_resolution_fn,
-                                   quote = FALSE, sep = "\t",
-                                   row.names = FALSE),
-                error = function(e){
+                    overlap_resolution_fn,
+                    quote = FALSE, sep = "\t",
+                    row.names = FALSE
+                ),
+                error = function(e) {
                     message("Could not save table.\n Continuing merge.\n")
                 }
             )
@@ -122,14 +136,16 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
         # exon_id of exons changed by BREW3R are modified
         modified <-
             GenomicRanges::width(extension_resolved_gr) !=
-            extension_resolved_gr$old_width
+                extension_resolved_gr$old_width
         extension_resolved_gr$exon_id[modified] <- paste0(
             extension_resolved_gr$exon_id[modified],
             ".ext"
         )
         rlang::inform(
-            paste(sum(modified), "exons have been extended",
-                  "while preventing collision with other genes.\n")
+            paste(
+                sum(modified), "exons have been extended",
+                "while preventing collision with other genes.\n"
+            )
         )
         # We remove old_width
         extension_resolved_gr$old_width <- NULL
@@ -140,15 +156,23 @@ extend_granges <- function(input_gr_to_extend, input_gr_to_overlap,
     if (add_new_exons) {
         progression_msg("Adding exons after existing ones.\n")
         extension_resolved_gr_new_exons <-
-            add_new_exons(extension_resolved_gr,
-                          input_gr_to_overlap)
+            add_new_exons(
+                extension_resolved_gr,
+                input_gr_to_overlap
+            )
         progression_msg(
-            paste("Added",
-                  length(grep("BREW3R",
-                              extension_resolved_gr_new_exons$exon_id)) -
-                      length(grep("BREW3R",
-                                  extension_resolved_gr$exon_id)),
-                  " exons.\n")
+            paste(
+                "Added",
+                length(grep(
+                    "BREW3R",
+                    extension_resolved_gr_new_exons$exon_id
+                )) -
+                    length(grep(
+                        "BREW3R",
+                        extension_resolved_gr$exon_id
+                    )),
+                " exons.\n"
+            )
         )
     } else {
         extension_resolved_gr_new_exons <- extension_resolved_gr
