@@ -1,3 +1,8 @@
+CHANGES IN VERSION 1.0.1
+------------------------
+
+   o Fix case when the input_gr_to_overlap have both stranded intervals and unstranded intervals (the users were facing a Warning but the results was not the expected one).
+
 CHANGES IN VERSION 0.99.2
 -------------------------
 
