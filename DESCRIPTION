@@ -1,7 +1,7 @@
 Package: BREW3R.r
 Type: Package
 Title: R package associated to BREW3R
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: 
     person(given = "Lucille",
            family = "Lopez-Delisle",
