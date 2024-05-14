@@ -74,9 +74,15 @@ small_gr_pot_extended <- GenomicRanges::GRanges(
 # input_gene1:  --->
 # input_gene2:                   --->
 # to_overlap:   ----/\--------/\---/  \---->
+# Case 10:
+# input_gene1:      ------->
+# input_gene2:                    -------->
+# to_overlap:  ---------------------->
+#                          -----------------------
+#              <--------------------------------------------
 
 
-input_gr_case1 <- GenomicRanges::GRanges(
+input_gr_case1_10 <- GenomicRanges::GRanges(
     seqnames = "chr1",
     ranges = IRanges::IRanges(start = c(5, 20),
                               end = c(10, 30)),
@@ -195,6 +201,16 @@ input_to_overlap_case5_9 <- GenomicRanges::GRanges(
     transcript_id = "transcriptA",
     type = "exon",
     exon_id = c("exonA", "exonB", "exonC", "exonD")
+)
+input_to_overlap_case10 <- GenomicRanges::GRanges(
+    seqnames = "chr1",
+    ranges = IRanges::IRanges(start = c(3, 10, 1),
+                              end = c(25, 50, 70)),
+    strand = c("+", "*", "-"),
+    gene_id = c("geneA", "geneB", "geneC"),
+    transcript_id = c("transcriptA", "transcriptB", "transcriptC"),
+    type = "exon",
+    exon_id = c("exonA", "exonB", "exonC")
 )
 
 input_gr_case1_pot_extended <- GenomicRanges::GRanges(
@@ -417,6 +433,18 @@ input_gr_case9_pot_extended <- GenomicRanges::GRanges(
     old_width = c(21, 16)
 )
 
+input_gr_case10_pot_extended <- GenomicRanges::GRanges(
+    seqnames = "chr1",
+    ranges = IRanges::IRanges(start = c(5, 20),
+                              end = c(50, 50)),
+    strand = "+",
+    gene_id = c("gene1", "gene2"),
+    transcript_id = c("transcript1", "transcript2"),
+    type = "exon",
+    exon_id = c("exon1", "exon2"),
+    old_width = c(6, 11)
+)
+
 test_that("three_prime_pos works", {
     expect_equal(three_prime_pos(input_gr),
                  c(3, 13, 20, 30))
@@ -436,10 +464,17 @@ test_that("extract_last_exons works", {
                  input_gr[4])
 })
 
-test_that("extend_using_overlap works", {
+test_that("extend_using_overlap works on basic", {
     expect_equal(
         extend_using_overlap(input_gr, input_gr_to_overlap),
         small_gr_pot_extended
+    )
+})
+
+test_that("extend_using_overlap works on mixed and unstranded", {
+    expect_equal(
+        extend_using_overlap(input_gr_case1_10, input_to_overlap_case10),
+        input_gr_case10_pot_extended
     )
 })
 
@@ -457,7 +492,7 @@ test_that("adjust_for_collision works on no issue", {
 
 test_that("case1 works", {
     expect_equal(
-        extend_using_overlap(extract_last_exons(input_gr_case1),
+        extend_using_overlap(extract_last_exons(input_gr_case1_10),
                              input_to_overlap_case1_2_3_4_6_7_8),
         subset(
             input_gr_case1_pot_extended,

@@ -52,8 +52,10 @@ which would lead to overlap between different gene_ids.
 
 input_gr <- GenomicRanges::GRanges(
     seqnames = "chr1",
-    ranges = IRanges::IRanges(start = c(5, 20),
-                              end = c(10, 30)),
+    ranges = IRanges::IRanges(
+        start = c(5, 20),
+        end = c(10, 30)
+    ),
     strand = "+",
     gene_id = c("gene1", "gene2"),
     transcript_id = c("transcript1", "transcript2"),
@@ -63,8 +65,10 @@ input_gr <- GenomicRanges::GRanges(
 
 input_gr_to_overlap <- GenomicRanges::GRanges(
     seqnames = "chr1",
-    ranges = IRanges::IRanges(start = 3,
-                              end = 15),
+    ranges = IRanges::IRanges(
+        start = 3,
+        end = 15
+    ),
     strand = "+",
     gene_id = "geneA",
     transcript_id = "transcriptA",
