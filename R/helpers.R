@@ -75,6 +75,7 @@ extract_last_exons <- function(
 #'         `input_gr_to_overlap` if they overlap
 #'         (initial width have been stored into old_width)
 #' @importFrom GenomicRanges strand
+#' @importFrom GenomicRanges `strand<-`
 extend_using_overlap <- function(input_gr_to_extend, input_gr_to_overlap) {
     # Remove strands which are not in + - and non exonic features
     input_gr_to_extend <- subset(
@@ -107,6 +108,9 @@ extend_using_overlap <- function(input_gr_to_extend, input_gr_to_overlap) {
         input_gr_to_overlap[S4Vectors::subjectHits(full_overlap)],
         S4Vectors::queryHits(full_overlap)
     )
+    # We need to remove strand in order to enable a single range for
+    # ranges with no strand and strand
+    strand(input_gr_to_overlap_intersect) <- "*"
     input_gr_to_overlap_intersect_range <-
         unlist(range(input_gr_to_overlap_intersect))
     # Select the corresponding to_extend
